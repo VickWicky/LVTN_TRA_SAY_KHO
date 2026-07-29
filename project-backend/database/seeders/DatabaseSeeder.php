@@ -1,0 +1,15 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $this->call([
+            ShopSeeder::class, // Gọi Seeder tổng hợp vừa tạo
+        ]);
+    }
+}
