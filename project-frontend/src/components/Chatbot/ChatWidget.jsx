@@ -15,7 +15,7 @@ export default function ChatWidget() {
       try { return JSON.parse(saved); } catch (e) {}
     }
     return [
-      { role: 'assistant', content: 'Xin chào! Tôi là trợ lý ảo của The Trà. Tôi có thể giúp gì cho bạn hôm nay?' }
+      { role: 'assistant', content: 'Xin chào! Tôi là trợ lý ảo của CK TEA. Tôi có thể giúp gì cho bạn hôm nay?' }
     ];
   });
   const [inputMessage, setInputMessage] = useState('');
@@ -172,7 +172,7 @@ export default function ChatWidget() {
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border border-white rounded-full"></span>
               </div>
               <div>
-                <h3 className="font-bold text-sm">The Trà Assistant</h3>
+                <h3 className="font-bold text-sm">CK TEA Assistant</h3>
                 <p className="text-xs text-primary-light flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-green-400 rounded-full inline-block animate-pulse"></span>
                   Đang hoạt động

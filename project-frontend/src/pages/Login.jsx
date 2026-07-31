@@ -49,7 +49,7 @@ export default function Login() {
 
         if (res.ok) {
           const roles = data.roles || [];
-          login(data.access_token, data.user, roles);
+          login(data.access_token, data.user, roles, data.permissions);
           redirectByRole(roles, data.user.name);
         } else {
           toast.error('Lỗi đăng nhập: ' + data.message);
@@ -85,7 +85,7 @@ export default function Login() {
 
       if (res.ok) {
         const roles = data.roles || [];
-        login(data.access_token, data.user, roles);
+        login(data.access_token, data.user, roles, data.permissions);
         redirectByRole(roles, data.user.name);
       } else {
         toast.error('Lỗi đăng nhập: ' + data.message);

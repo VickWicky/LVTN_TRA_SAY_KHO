@@ -8,6 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [roles, setRoles] = useState([]);
+  const [permissions, setPermissions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Khi mount: kiểm tra token và lấy thông tin user + roles từ server
@@ -33,6 +34,7 @@ export function AuthProvider({ children }) {
         const data = await res.json();
         setUser(data.user);
         setRoles(data.roles || []);
+        setPermissions(data.permissions || []);
       } else {
         // Token hết hạn hoặc không hợp lệ
         localStorage.removeItem('token');
@@ -46,11 +48,12 @@ export function AuthProvider({ children }) {
   };
 
   // Hàm login: lưu token + user data từ response API
-  const login = (tokenValue, userData, userRoles) => {
+  const login = (tokenValue, userData, userRoles, userPermissions = []) => {
     localStorage.setItem('token', tokenValue);
     localStorage.setItem('isLoggedIn', 'true');
     setUser(userData);
     setRoles(userRoles || []);
+    setPermissions(userPermissions || []);
   };
 
   // Hàm logout: xóa token và reset state
@@ -59,6 +62,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('isLoggedIn');
     setUser(null);
     setRoles([]);
+    setPermissions([]);
   };
 
   // Auto-logout do treo máy (Idle Timeout = 30 phút)
@@ -107,6 +111,7 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     roles,
+    permissions,
     isLoggedIn,
     isLoading,
     isAdmin,

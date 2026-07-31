@@ -9,7 +9,7 @@ import AdminProfileModal from './admin/AdminProfileModal';
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, roles, logout, isAdmin, isStaff, isSales, hasAccountAccess } = useAuth();
+  const { user, roles, permissions, logout, isAdmin, isStaff, isSales } = useAuth();
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -91,19 +91,19 @@ export default function AdminLayout() {
   const roleBadge = getRoleBadge();
 
   const navItems = [
-    { path: '/admin', label: 'Dashboard', icon: 'fas fa-chart-line', show: isAdmin || isSales }, // Không cho kho xem
-    { path: '/admin/categories', label: 'Quản lý Danh mục', icon: 'fas fa-tags', show: isAdmin || isSales }, // Bán hàng được xem, kho thì không cần
-    { path: '/admin/products', label: 'Quản lý Sản phẩm', icon: 'fas fa-box-open', show: true }, // Mọi người đều thấy (Sales/Staff chỉ xem)
-    { path: '/admin/promotions', label: 'Quản lý Khuyến mãi', icon: 'fas fa-gift', show: isAdmin },
-    { path: '/admin/orders', label: 'Quản lý Đơn hàng', icon: 'fas fa-shopping-cart', show: isAdmin || isSales },
-    { path: '/admin/inventory-logs', label: 'Quản lý Xuất kho', icon: 'fas fa-file-export', show: isAdmin || isStaff },
-    { path: '/admin/inventory', label: 'Quản lý Nhập kho', icon: 'fas fa-warehouse', show: isAdmin || isStaff }, // Chỉ Admin & Kho
-    { path: '/admin/suppliers', label: 'Nhà Cung Cấp', icon: 'fas fa-truck', show: isAdmin || isStaff }, // Chỉ Admin & Kho
-    { path: '/admin/contacts', label: 'Quản lý Liên hệ', icon: 'fas fa-envelope', show: isAdmin || isSales },
-    { path: '/admin/accounts', label: 'Quản lý Tài khoản', icon: 'fas fa-users', show: hasAccountAccess },
-    { path: '/admin/roles', label: 'Quản lý Vai trò', icon: 'fas fa-user-shield', show: isAdmin },
-    { path: '/admin/banners', label: 'Quản lý Banner', icon: 'fas fa-images', show: isAdmin },
-    { path: '/admin/settings', label: 'Cấu hình Website', icon: 'fas fa-cogs', show: isAdmin },
+    { path: '/admin', label: 'Dashboard', icon: 'fas fa-chart-line', show: isAdmin || permissions?.includes('view-dashboard') },
+    { path: '/admin/categories', label: 'Quản lý Danh mục', icon: 'fas fa-tags', show: isAdmin || permissions?.includes('manage-categories') || permissions?.includes('manage-products') },
+    { path: '/admin/products', label: 'Quản lý Sản phẩm', icon: 'fas fa-box-open', show: true }, // Mọi người đều thấy
+    { path: '/admin/promotions', label: 'Quản lý Khuyến mãi', icon: 'fas fa-gift', show: isAdmin || permissions?.includes('manage-promotions') },
+    { path: '/admin/orders', label: 'Quản lý Đơn hàng', icon: 'fas fa-shopping-cart', show: isAdmin || permissions?.includes('manage-orders') },
+    { path: '/admin/inventory-logs', label: 'Quản lý Xuất kho', icon: 'fas fa-file-export', show: isAdmin || permissions?.includes('manage-import') },
+    { path: '/admin/inventory', label: 'Quản lý Nhập kho', icon: 'fas fa-warehouse', show: isAdmin || permissions?.includes('manage-import') },
+    { path: '/admin/suppliers', label: 'Nhà Cung Cấp', icon: 'fas fa-truck', show: isAdmin || permissions?.includes('manage-import') },
+    { path: '/admin/contacts', label: 'Quản lý Liên hệ', icon: 'fas fa-envelope', show: isAdmin || permissions?.includes('manage-contacts') },
+    { path: '/admin/accounts', label: 'Quản lý Tài khoản', icon: 'fas fa-users', show: isAdmin || permissions?.includes('manage-users') || permissions?.includes('view-users') },
+    { path: '/admin/roles', label: 'Quản lý Vai trò', icon: 'fas fa-user-shield', show: isAdmin || permissions?.includes('manage-roles') || permissions?.includes('manage-users') },
+    { path: '/admin/banners', label: 'Quản lý Banner', icon: 'fas fa-images', show: isAdmin || permissions?.includes('manage-settings') },
+    { path: '/admin/settings', label: 'Cấu hình Website', icon: 'fas fa-cogs', show: isAdmin || permissions?.includes('manage-settings') },
   ].filter(item => item.show);
 
   return (

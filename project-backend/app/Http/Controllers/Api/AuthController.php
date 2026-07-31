@@ -87,6 +87,7 @@ class AuthController extends Controller
             'access_token' => $token,
             'user' => $user,
             'roles' => $user->getRoleNames(),
+            'permissions' => $user->getAllPermissions()->pluck('name'),
         ]);
     }
 
@@ -117,6 +118,7 @@ class AuthController extends Controller
             'access_token' => $token,
             'user' => $user,
             'roles' => $user->getRoleNames(), // ['admin'], ['staff'], hoặc ['customer']
+            'permissions' => $user->getAllPermissions()->pluck('name'),
         ]);
     }
 
@@ -160,6 +162,7 @@ class AuthController extends Controller
                 'access_token' => $token,
                 'user' => $user,
                 'roles' => $user->getRoleNames(),
+                'permissions' => $user->getAllPermissions()->pluck('name'),
             ]);
 
         } catch (\Exception $e) {

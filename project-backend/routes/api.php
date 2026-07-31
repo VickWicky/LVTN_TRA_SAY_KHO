@@ -45,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json([
             'user' => $user,
             'roles' => $user->getRoleNames(), // Trả về danh sách roles của user
+            'permissions' => $user->getAllPermissions()->pluck('name'),
         ]);
     });
     Route::put('/user/profile', [AuthController::class, 'updateProfile']);
