@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function PaymentReturn() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -31,7 +33,7 @@ export default function PaymentReturn() {
         
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const res = await fetch('http://127.0.0.1:8000/api/payment/vnpay/verify', {
+        const res = await fetch(`${API_URL}/api/payment/vnpay/verify`, {
           method: 'POST',
           headers,
           body: JSON.stringify(data)
@@ -118,7 +120,7 @@ export default function PaymentReturn() {
                     };
                     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-                    const res = await fetch('http://127.0.0.1:8000/api/payment/vnpay/create-url', {
+                    const res = await fetch(`${API_URL}/api/payment/vnpay/create-url`, {
                       method: 'POST',
                       headers,
                       body: JSON.stringify({ order_code: orderCode })

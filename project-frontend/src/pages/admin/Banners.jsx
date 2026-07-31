@@ -5,6 +5,8 @@ import { getAuthToken } from '../../utils';
 import Pagination from '../../components/admin/Pagination';
 import ConfirmModal from '../../components/admin/ConfirmModal';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Banners() {
   const [banners, setBanners] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,7 +41,7 @@ export default function Banners() {
   const fetchBanners = async (page = currentPage, search = debouncedSearch) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/admin/banners?page=${page}&search=${encodeURIComponent(search)}`, {
+      const res = await fetch(`${API_URL}/api/admin/banners?page=${page}&search=${encodeURIComponent(search)}`, {
         headers: { 'Authorization': `Bearer ${getAuthToken()}` }
       });
       if (res.ok) {
@@ -77,7 +79,7 @@ export default function Banners() {
         is_active: banner.is_active
       });
       setEditId(banner.id);
-      setImagePreview(banner.image_url?.startsWith('http') ? banner.image_url : `http://127.0.0.1:8000${banner.image_url}`);
+      setImagePreview(banner.image_url?.startsWith('http') ? banner.image_url : `${API_URL}${banner.image_url}`);
     } else {
       setFormData({ title: '', subtitle: '', cta_text: '', cta_link: '', sort_order: 0, is_active: true });
       setEditId(null);
@@ -112,10 +114,10 @@ export default function Banners() {
     }
 
     try {
-      let url = 'http://127.0.0.1:8000/api/admin/banners';
+      let url = `${API_URL}/api/admin/banners`;
       
       if (editId) {
-        url = `http://127.0.0.1:8000/api/admin/banners/${editId}`;
+        url = `${API_URL}/api/admin/banners/${editId}`;
         form.append('_method', 'PUT');
       }
 
@@ -153,7 +155,7 @@ export default function Banners() {
     const id = confirmModal.id;
     setConfirmModal({ isOpen: false, id: null });
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/admin/banners/${id}`, {
+      const res = await fetch(`${API_URL}/api/admin/banners/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${getAuthToken()}` }
       });
@@ -181,7 +183,7 @@ export default function Banners() {
     form.append('_method', 'PUT');
     
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/admin/banners/${banner.id}`, {
+      const res = await fetch(`${API_URL}/api/admin/banners/${banner.id}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${getAuthToken()}` },
         body: form
@@ -267,7 +269,7 @@ export default function Banners() {
                 <tr key={banner.id} className="hover:bg-blue-50/30 transition-colors group">
                   <td className="p-4">
                     <div className="w-32 h-16 rounded-lg overflow-hidden border border-gray-200 shadow-sm mx-auto group-hover:shadow-md transition-shadow">
-                      <img src={banner.image_url?.startsWith('http') ? banner.image_url : `http://127.0.0.1:8000${banner.image_url}`} alt="Banner" className="w-full h-full object-cover" />
+                      <img src={banner.image_url?.startsWith('http') ? banner.image_url : `${API_URL}${banner.image_url}`} alt="Banner" className="w-full h-full object-cover" />
                     </div>
                   </td>
                   <td className="p-4">

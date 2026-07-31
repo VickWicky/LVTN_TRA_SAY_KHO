@@ -3,6 +3,8 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getAuthToken } from '../../utils';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Settings() {
   const [settings, setSettings] = useState({
     store_name: 'CK Tea',
@@ -16,7 +18,7 @@ export default function Settings() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/admin/settings', {
+      const res = await fetch(`${API_URL}/api/admin/settings`, {
         headers: { 'Authorization': `Bearer ${getAuthToken()}` }
       });
       if (res.ok) {
@@ -33,7 +35,7 @@ export default function Settings() {
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/admin/settings', {
+      const res = await fetch(`${API_URL}/api/admin/settings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

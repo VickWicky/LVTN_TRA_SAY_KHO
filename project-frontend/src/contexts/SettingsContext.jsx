@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 const SettingsContext = createContext();
 
 export function SettingsProvider({ children }) {
@@ -18,7 +20,7 @@ export function SettingsProvider({ children }) {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/public/settings');
+      const res = await fetch(`${API_URL}/api/public/settings`);
       if (res.ok) {
         const data = await res.json();
         setSettings(prev => ({ ...prev, ...data, branches: data.branches || [] }));

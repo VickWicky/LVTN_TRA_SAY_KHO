@@ -3,12 +3,14 @@ import { toast } from 'react-toastify';
 import { getImageUrl } from '../../utils';
 import { Link } from 'react-router-dom';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(() => {
-    return sessionStorage.getItem('chat_is_open') === 'true';
+    return localStorage.getItem('chat_is_open') === 'true';
   });
   const [messages, setMessages] = useState(() => {
-    const saved = sessionStorage.getItem('chat_messages');
+    const saved = localStorage.getItem('chat_messages');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
@@ -27,11 +29,11 @@ export default function ChatWidget() {
   };
 
   useEffect(() => {
-    sessionStorage.setItem('chat_is_open', isOpen);
+    localStorage.setItem('chat_is_open', isOpen);
   }, [isOpen]);
 
   useEffect(() => {
-    sessionStorage.setItem('chat_messages', JSON.stringify(messages));
+    localStorage.setItem('chat_messages', JSON.stringify(messages));
     scrollToBottom();
   }, [messages, isOpen]);
 
@@ -55,7 +57,7 @@ export default function ChatWidget() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const res = await fetch('http://127.0.0.1:8000/api/chat', {
+      const res = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers,
         body: JSON.stringify({

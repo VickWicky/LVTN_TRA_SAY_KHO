@@ -7,6 +7,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { removeVietnameseTones } from '../utils';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Layout() {
   const { cartCount } = useCart();
   const { isLoggedIn, isAdminOrStaff, isLoading, logout } = useAuth();
@@ -21,7 +23,7 @@ export default function Layout() {
   useEffect(() => {
     const fetchKeywords = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/products');
+        const res = await fetch(`${API_URL}/api/products`);
         if (res.ok) {
           const data = await res.json();
           // Lấy danh sách tên sản phẩm làm từ khóa, giới hạn 15 từ khóa

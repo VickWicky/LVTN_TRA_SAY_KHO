@@ -4,6 +4,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../contexts/AuthContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +36,7 @@ export default function Login() {
     onSuccess: async (tokenResponse) => {
       try {
         setIsLoading(true);
-        const res = await fetch('http://127.0.0.1:8000/api/auth/google', {
+        const res = await fetch(`${API_URL}/api/auth/google`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -70,7 +72,7 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/login', {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

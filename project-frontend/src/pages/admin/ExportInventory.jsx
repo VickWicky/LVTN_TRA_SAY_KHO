@@ -3,6 +3,8 @@ import Pagination from '../../components/admin/Pagination';
 import Select from 'react-select';
 import { toast, ToastContainer } from 'react-toastify';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 
 export default function ExportInventory() {
   const [logs, setLogs] = useState([]);
@@ -35,7 +37,7 @@ export default function ExportInventory() {
       const token = localStorage.getItem('token');
       const headers = { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` };
       
-      let url = `http://127.0.0.1:8000/api/admin/inventory-logs?page=${page}`;
+      let url = `${API_URL}/api/admin/inventory-logs?page=${page}`;
       if (search) url += `&search=${encodeURIComponent(search)}`;
       if (filterReason) url += `&reason=${encodeURIComponent(filterReason)}`;
       if (filterStartDate) url += `&start_date=${encodeURIComponent(filterStartDate)}`;
@@ -64,7 +66,7 @@ export default function ExportInventory() {
       const token = localStorage.getItem('token');
       const headers = { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` };
       
-      const res = await fetch('http://127.0.0.1:8000/api/admin/inventory?page=1&search=', { headers });
+      const res = await fetch(`${API_URL}/api/admin/inventory?page=1&search=`, { headers });
       if (res.ok) {
         const data = await res.json();
         setBatches(data.data || []);
@@ -103,7 +105,7 @@ export default function ExportInventory() {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://127.0.0.1:8000/api/admin/inventory-logs', {
+      const res = await fetch(`${API_URL}/api/admin/inventory-logs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

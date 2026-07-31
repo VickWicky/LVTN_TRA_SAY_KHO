@@ -3,6 +3,8 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAuthToken } from '../../utils';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function AdminProfileModal({ isOpen, onClose }) {
   const { user, setUser } = useAuth();
   
@@ -40,7 +42,7 @@ export default function AdminProfileModal({ isOpen, onClose }) {
     
     try {
       const token = getAuthToken();
-      const res = await fetch('http://127.0.0.1:8000/api/user/profile', {
+      const res = await fetch(`${API_URL}/api/user/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +77,7 @@ export default function AdminProfileModal({ isOpen, onClose }) {
     setIsUpdating(true);
     try {
       const token = getAuthToken();
-      const res = await fetch('http://127.0.0.1:8000/api/user/password', {
+      const res = await fetch(`${API_URL}/api/user/password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

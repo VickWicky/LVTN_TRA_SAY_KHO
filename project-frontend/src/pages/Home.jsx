@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../utils';
 import { useWishlist } from '../contexts/WishlistContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Home() {
   const navigate = useNavigate();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -25,9 +27,9 @@ export default function Home() {
     const fetchData = async () => {
       try {
         const [topRes, saleRes, bannerRes] = await Promise.all([
-          fetch('http://127.0.0.1:8000/api/products/top-random'),
-          fetch('http://127.0.0.1:8000/api/products/on-sale'),
-          fetch('http://127.0.0.1:8000/api/public/banners')
+          fetch(`${API_URL}/api/products/top-random`),
+          fetch(`${API_URL}/api/products/on-sale`),
+          fetch(`${API_URL}/api/public/banners`)
         ]);
         
         if (topRes.ok && saleRes.ok) {

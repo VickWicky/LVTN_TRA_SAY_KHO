@@ -64,13 +64,13 @@ class InventoryController extends Controller
     public function importInventory(Request $request)
     {
         $validated = $request->validate([
-            'supplier_id' => 'required|integer',
-            'items' => 'required|array',
-            'items.*.variant_id' => 'required|integer',
-            'items.*.quantity' => 'required|integer',
-            'items.*.import_price' => 'required|numeric',
-            'items.*.mfg_date' => 'required|date',
-            'items.*.exp_date' => 'required|date',
+            'supplier_id' => 'required|exists:suppliers,id',
+            'items' => 'required|array|min:1',
+            'items.*.variant_id' => 'required|exists:product_variants,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.import_price' => 'required|numeric|min:0',
+            'items.*.mfg_date' => 'required|date|before:items.*.exp_date',
+            'items.*.exp_date' => 'required|date|after:items.*.mfg_date',
         ]);
 
         try {

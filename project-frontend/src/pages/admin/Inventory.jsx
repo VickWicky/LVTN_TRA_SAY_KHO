@@ -4,6 +4,8 @@ import Select from 'react-select';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Inventory() {
   const [activeTab, setActiveTab] = useState('receipts'); // receipts, batches
   
@@ -43,10 +45,10 @@ export default function Inventory() {
       const headers = { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` };
       
       const [batchRes, receiptRes, supplierRes, prodRes] = await Promise.all([
-        fetch(`http://127.0.0.1:8000/api/admin/inventory?page=${tab === 'batches' ? page : 1}&search=${encodeURIComponent(search)}`, { headers }),
-        fetch(`http://127.0.0.1:8000/api/admin/inventory/receipts?page=${tab === 'receipts' ? page : 1}&search=${encodeURIComponent(search)}`, { headers }),
-        fetch('http://127.0.0.1:8000/api/admin/inventory/suppliers', { headers }),
-        fetch('http://127.0.0.1:8000/api/products')
+        fetch(`${API_URL}/api/admin/inventory?page=${tab === 'batches' ? page : 1}&search=${encodeURIComponent(search)}`, { headers }),
+        fetch(`${API_URL}/api/admin/inventory/receipts?page=${tab === 'receipts' ? page : 1}&search=${encodeURIComponent(search)}`, { headers }),
+        fetch(`${API_URL}/api/admin/inventory/suppliers`, { headers }),
+        fetch(`${API_URL}/api/products`)
       ]);
 
       if (fetchId !== fetchIdRef.current) return;
@@ -133,7 +135,7 @@ export default function Inventory() {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://127.0.0.1:8000/api/admin/inventory/import', {
+      const res = await fetch(`${API_URL}/api/admin/inventory/import`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

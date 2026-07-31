@@ -5,6 +5,8 @@ import { useWishlist } from '../contexts/WishlistContext';
 import { getImageUrl } from '../utils';
 import { useCart } from '../contexts/CartContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Profile() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -71,14 +73,14 @@ export default function Profile() {
 
       try {
         const [userRes, orderRes] = await Promise.all([
-          fetch('http://127.0.0.1:8000/api/user', {
+          fetch(`${API_URL}/api/user`, {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
               'Authorization': `Bearer ${token}`
             }
           }),
-          fetch('http://127.0.0.1:8000/api/user/orders', {
+          fetch(`${API_URL}/api/user/orders`, {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
@@ -122,7 +124,7 @@ export default function Profile() {
     const token = localStorage.getItem('token');
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/user/profile', {
+      const res = await fetch(`${API_URL}/api/user/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +166,7 @@ export default function Profile() {
     const token = localStorage.getItem('token');
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/user/password', {
+      const res = await fetch(`${API_URL}/api/user/password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -200,7 +202,7 @@ export default function Profile() {
   const handleRetryPayment = async (orderId) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://127.0.0.1:8000/api/payment/vnpay/create-url', {
+      const res = await fetch(`${API_URL}/api/payment/vnpay/create-url`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -225,7 +227,7 @@ export default function Profile() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://127.0.0.1:8000/api/user/orders/${shippingModal.orderId}/shipping`, {
+      const res = await fetch(`${API_URL}/api/user/orders/${shippingModal.orderId}/shipping`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -256,7 +258,7 @@ export default function Profile() {
     if (!cancelModal.orderId) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://127.0.0.1:8000/api/user/orders/${cancelModal.orderId}/cancel`, {
+      const res = await fetch(`${API_URL}/api/user/orders/${cancelModal.orderId}/cancel`, {
         method: 'PUT',
         headers: {
           'Accept': 'application/json',

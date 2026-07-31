@@ -3,6 +3,8 @@ import { toast } from 'react-toastify';
 import { getImageUrl } from '../../utils';
 import Pagination from '../../components/admin/Pagination';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,7 +50,7 @@ export default function Orders() {
       // If backend doesn't support it yet, it will just ignore it. 
       // Assuming backend supports it or we filter on frontend.
       // Let's pass it anyway: &status=${status}
-      let url = `http://127.0.0.1:8000/api/admin/orders?page=${page}&search=${encodeURIComponent(search)}`;
+      let url = `${API_URL}/api/admin/orders?page=${page}&search=${encodeURIComponent(search)}`;
       if (status !== 'all') {
         url += `&status=${status}`;
       }
@@ -125,7 +127,7 @@ export default function Orders() {
     
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://127.0.0.1:8000/api/admin/orders/${orderId}/status`, {
+      const res = await fetch(`${API_URL}/api/admin/orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -156,7 +158,7 @@ export default function Orders() {
   const handlePaymentStatusChange = async (orderId, newStatus) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://127.0.0.1:8000/api/admin/orders/${orderId}/payment-status`, {
+      const res = await fetch(`${API_URL}/api/admin/orders/${orderId}/payment-status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -187,7 +189,7 @@ export default function Orders() {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://127.0.0.1:8000/api/admin/orders/${shippingModal.orderId}/shipping`, {
+      const res = await fetch(`${API_URL}/api/admin/orders/${shippingModal.orderId}/shipping`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

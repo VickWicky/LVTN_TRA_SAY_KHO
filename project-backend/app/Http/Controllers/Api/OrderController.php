@@ -21,7 +21,7 @@ class OrderController extends Controller
             'shipping_name' => 'required|string|max:255',
             'shipping_phone' => 'required|string|max:20',
             'shipping_address' => 'required|string',
-            'payment_method' => 'required|string',
+            'payment_method' => 'required|string|in:cod,vnpay',
             'items' => 'required|array|min:1',
             'items.*.variant_id' => 'required|exists:product_variants,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -71,6 +71,7 @@ class OrderController extends Controller
                     if ($quantityNeeded <= 0) break;
 
                     $takeQuantity = min($batch->stock, $quantityNeeded);
+                    if ($takeQuantity <= 0) continue; // Skip if stock is zero due to concurrency
                     
                     // Trừ stock trong batch
                     $batch->stock -= $takeQuantity;
@@ -88,6 +89,10 @@ class OrderController extends Controller
                     ];
 
                     $quantityNeeded -= $takeQuantity;
+                }
+
+                if ($quantityNeeded > 0) {
+                    throw new \Exception("Sản phẩm {$variant->product->name} (Biến thể {$variant->weight}g) đã hết hàng trong kho. Vui lòng tải lại trang!");
                 }
             }
 

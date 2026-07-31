@@ -7,6 +7,8 @@ import * as XLSX from 'xlsx';
 import { useAuth } from '../../contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Dashboard() {
   const { roles } = useAuth();
   const isStaff = roles.includes('staff');
@@ -43,7 +45,7 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem('token');
       // Thêm tham số timeRange vào API, ví dụ: ?range=7days
-      let url = `http://127.0.0.1:8000/api/admin/dashboard-stats?range=${timeRange}`;
+      let url = `${API_URL}/api/admin/dashboard-stats?range=${timeRange}`;
       if (timeRange === 'custom') {
         if (!startDate || !endDate) {
           setIsLoading(false);

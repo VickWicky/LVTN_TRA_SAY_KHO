@@ -1,6 +1,8 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 const WishlistContext = createContext();
 
 export function WishlistProvider({ children }) {
@@ -12,7 +14,7 @@ export function WishlistProvider({ children }) {
       if (!token) return;
 
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/wishlists', {
+        const res = await fetch(`${API_URL}/api/wishlists`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -46,7 +48,7 @@ export function WishlistProvider({ children }) {
     }
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/wishlists/toggle', {
+      const res = await fetch(`${API_URL}/api/wishlists/toggle`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -5,6 +5,8 @@ import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { getImageUrl } from '../utils';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function ProductDetail() {
 
   const { id } = useParams(); 
@@ -21,7 +23,7 @@ export default function ProductDetail() {
   useEffect(() => {
     const fetchProductDetail = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/products/${id}`);
+        const res = await fetch(`${API_URL}/api/products/${id}`);
         if (res.ok) {
           const data = await res.json();
           setProduct(data);

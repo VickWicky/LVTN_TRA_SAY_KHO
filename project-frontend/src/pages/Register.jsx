@@ -2,6 +2,8 @@ import { toast } from 'react-toastify';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Register() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1); // 1: Thông tin, 2: OTP
@@ -25,7 +27,7 @@ export default function Register() {
 
     try {
       setLoading(true);
-      const res = await fetch('http://127.0.0.1:8000/api/register', {
+      const res = await fetch(`${API_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
@@ -67,7 +69,7 @@ export default function Register() {
 
     try {
       setLoading(true);
-      const res = await fetch('http://127.0.0.1:8000/api/verify-otp', {
+      const res = await fetch(`${API_URL}/api/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({

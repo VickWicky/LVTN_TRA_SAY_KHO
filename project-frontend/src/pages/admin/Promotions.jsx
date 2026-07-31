@@ -66,9 +66,9 @@ export default function Promotions() {
       };
 
       const [promoRes, catRes, prodRes] = await Promise.all([
-        fetch(`http://127.0.0.1:8000/api/admin/promotions?page=${page}&search=${encodeURIComponent(search)}`, { headers }),
-        fetch('http://127.0.0.1:8000/api/admin/categories/active', { headers }),
-        fetch('http://127.0.0.1:8000/api/admin/products', { headers })
+        fetch(`${API_URL}/api/admin/promotions?page=${page}&search=${encodeURIComponent(search)}`, { headers }),
+        fetch(`${API_URL}/api/admin/categories/active`, { headers }),
+        fetch(`${API_URL}/api/admin/products`, { headers })
       ]);
 
       if (fetchId !== fetchIdRef.current) return;
@@ -148,8 +148,8 @@ export default function Promotions() {
     try {
       const token = localStorage.getItem('token');
       const url = editingPromotion 
-        ? `http://127.0.0.1:8000/api/admin/promotions/${editingPromotion.id}`
-        : 'http://127.0.0.1:8000/api/admin/promotions';
+        ? `${API_URL}/api/admin/promotions/${editingPromotion.id}`
+        : `${API_URL}/api/admin/promotions`;
         
       const res = await fetch(url, {
         method: editingPromotion ? 'PUT' : 'POST',

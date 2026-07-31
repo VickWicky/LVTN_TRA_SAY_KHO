@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getImageUrl, removeVietnameseTones } from '../utils';
 import { useWishlist } from '../contexts/WishlistContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Products() {
   const navigate = useNavigate();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -38,8 +40,8 @@ export default function Products() {
     const fetchData = async () => {
       try {
         const [prodRes, catRes] = await Promise.all([
-          fetch('http://127.0.0.1:8000/api/products'),
-          fetch('http://127.0.0.1:8000/api/categories')
+          fetch(`${API_URL}/api/products`),
+          fetch(`${API_URL}/api/categories`)
         ]);
         if (prodRes.ok) {
           const data = await prodRes.json();

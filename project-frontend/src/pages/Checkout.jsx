@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../utils';
 import { useCart } from '../contexts/CartContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Checkout() {
   const navigate = useNavigate();
   const { cartItems, cartTotal, clearCart } = useCart();
@@ -31,7 +33,7 @@ export default function Checkout() {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const res = await fetch('http://127.0.0.1:8000/api/user', {
+          const res = await fetch(`${API_URL}/api/user`, {
             headers: {
               'Accept': 'application/json',
               'Authorization': `Bearer ${token}`
@@ -95,7 +97,7 @@ export default function Checkout() {
     }
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/orders', {
+      const res = await fetch(`${API_URL}/api/orders`, {
         method: 'POST',
         headers,
         body: JSON.stringify(payload)
@@ -109,7 +111,7 @@ export default function Checkout() {
         if (formData.payment_method === 'vnpay') {
           // Gửi request tạo URL VNPAY
           try {
-            const vnpayRes = await fetch('http://127.0.0.1:8000/api/payment/vnpay/create-url', {
+            const vnpayRes = await fetch(`${API_URL}/api/payment/vnpay/create-url`, {
               method: 'POST',
               headers,
               body: JSON.stringify({ order_id: data.order.id })
