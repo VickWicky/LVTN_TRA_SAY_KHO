@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import CartSidebar from './CartSidebar';
 import ChatWidget from './Chatbot/ChatWidget';
 import { useCart } from '../contexts/CartContext';
@@ -67,10 +67,10 @@ export default function Layout() {
           </Link>
 
           <nav className="hidden md:flex gap-8 font-semibold">
-            <Link to="/" className="hover:text-primary transition border-b-2 border-transparent hover:border-primary">Trang Chủ</Link>
-            <Link to="/about" className="hover:text-primary transition border-b-2 border-transparent hover:border-primary">Giới Thiệu</Link>
-            <Link to="/products" className="hover:text-primary transition border-b-2 border-transparent hover:border-primary">Sản Phẩm</Link>
-            <Link to="/contact" className="hover:text-primary transition border-b-2 border-transparent hover:border-primary">Liên Hệ</Link>
+            <NavLink to="/" className={({ isActive }) => `hover:text-primary transition border-b-2 hover:border-primary ${isActive ? 'border-primary text-primary' : 'border-transparent'}`}>Trang Chủ</NavLink>
+            <NavLink to="/about" className={({ isActive }) => `hover:text-primary transition border-b-2 hover:border-primary ${isActive ? 'border-primary text-primary' : 'border-transparent'}`}>Giới Thiệu</NavLink>
+            <NavLink to="/products" className={({ isActive }) => `hover:text-primary transition border-b-2 hover:border-primary ${isActive ? 'border-primary text-primary' : 'border-transparent'}`}>Sản Phẩm</NavLink>
+            <NavLink to="/contact" className={({ isActive }) => `hover:text-primary transition border-b-2 hover:border-primary ${isActive ? 'border-primary text-primary' : 'border-transparent'}`}>Liên Hệ</NavLink>
           </nav>
 
           <div className="flex items-center gap-4 md:gap-6">

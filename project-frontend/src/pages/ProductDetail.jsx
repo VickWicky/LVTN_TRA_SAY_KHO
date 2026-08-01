@@ -44,11 +44,22 @@ export default function ProductDetail() {
     fetchProductDetail();
   }, [id, navigate]);
 
+  useEffect(() => {
+    if (selectedVariant) {
+      setQuantity(1);
+    }
+  }, [selectedVariant]);
+
   const handleDecrease = () => {
     if (quantity > 1) setQuantity(quantity - 1);
   };
   const handleIncrease = () => {
-    setQuantity(quantity + 1);
+    const availableStock = selectedVariant?.batches_sum_stock || 0;
+    if (quantity < availableStock) {
+      setQuantity(quantity + 1);
+    } else {
+      toast.warning(`Chỉ còn ${availableStock} sản phẩm!`);
+    }
   };
 
   const handleAddToCart = () => {
@@ -128,7 +139,14 @@ export default function ProductDetail() {
 
           {/* KHU VỰC CHỌN GÓI TRÀ (Bổ sung để phù hợp với DB) */}
           <div className="mb-8">
-            <label className="text-sm font-semibold mb-3 text-dark block">Chọn Khối Lượng:</label>
+            <label className="text-sm font-semibold mb-3 text-dark flex items-center gap-2">
+              Chọn Khối Lượng
+              {selectedVariant && (
+                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${selectedVariant.batches_sum_stock > 0 ? 'text-green-700' : 'text-red-600'}`}>
+                  {selectedVariant.batches_sum_stock > 0 ? `Còn lại: ${selectedVariant.batches_sum_stock}` : 'Hết hàng'}
+                </span>
+              )}
+            </label>
             <div className="flex gap-3">
               {product.variants && product.variants.map((variant) => (
                 <button
@@ -170,9 +188,15 @@ export default function ProductDetail() {
             
             <button 
               onClick={handleAddToCart}
-              className="flex-1 h-12 bg-primary hover:bg-primary-dark text-white font-semibold rounded-lg transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              disabled={!selectedVariant || selectedVariant.batches_sum_stock <= 0}
+              className={`flex-1 h-12 text-white font-semibold rounded-lg transition shadow-md flex items-center justify-center gap-2 ${
+                !selectedVariant || selectedVariant.batches_sum_stock <= 0
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-primary hover:bg-primary-dark cursor-pointer'
+              }`}
             >
-              <i className="fas fa-shopping-cart"></i> Thêm vào giỏ
+              <i className="fas fa-shopping-cart"></i> 
+              {selectedVariant && selectedVariant.batches_sum_stock <= 0 ? 'Hết hàng' : 'Thêm vào giỏ'}
             </button>
             <button
               onClick={() => toggleWishlist(product)}

@@ -105,7 +105,12 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::with(['variants', 'category'])
+        $product = Product::with([
+            'category',
+            'variants' => function ($query) {
+                $query->withSum('batches', 'stock');
+            }
+        ])
             ->where('is_active', true)
             ->find($id);
 
