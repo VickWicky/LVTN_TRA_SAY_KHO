@@ -1,0 +1,54 @@
+name: Deploy Backend to iNet
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "project-backend/**"
+      - ".github/workflows/deploy-backend.yml"
+
+jobs:
+  web-deploy:
+    name: Deploy Laravel Backend
+    runs-on: ubuntu-latest
+
+    # Đặt thư mục làm việc mặc định cho job là thư mục backend
+    defaults:
+      run:
+        working-directory: ./project-backend
+
+    steps:
+      - name: Get latest code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2" # Hãy thay đổi nếu bạn dùng phiên bản PHP khác
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, gd, iconv, json, libxml, pdo
+
+      - name: Install Dependencies (Composer)
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --no-dev --optimize-autoloader
+
+      - name: Create .env file for production
+        run: |
+          cp .env.example .env
+          # Mật khẩu database và cấu hình sẽ được điền từ Hosting, 
+          # Nên bạn có thể bỏ qua bước generate key nếu key đã được set cố định trên hosting.
+          # php artisan key:generate
+
+      - name: Sync files to iNet via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./project-backend/
+          server-dir: /public_html/ # Đẩy toàn bộ code backend vào thư mục public_html
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+            .env

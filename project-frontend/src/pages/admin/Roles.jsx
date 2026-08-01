@@ -313,7 +313,7 @@ export default function Roles() {
                 >
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Tên Vai Trò (Ví dụ: Kế toán)
+                      Tên Vai Trò
                     </label>
                     <input
                       type="text"
