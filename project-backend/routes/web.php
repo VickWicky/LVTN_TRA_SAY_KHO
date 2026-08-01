@@ -14,3 +14,4 @@ Route::get('storage/{folder}/{filename}', function ($folder, $filename) {
     }
     return response()->file($path);
 })->where('filename', '.*');
+Route::get('/clear-cache', function () { \Artisan::call('optimize:clear'); return 'Cache cleared'; });
