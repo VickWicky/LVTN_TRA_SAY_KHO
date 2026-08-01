@@ -80,7 +80,7 @@ export default function ChatWidget() {
           const parsed = JSON.parse(data.reply);
           finalContent = parsed;
         } catch(e) {
-          // It's normal text
+
         }
 
         setMessages(prev => [...prev, { role: 'assistant', content: finalContent }]);
@@ -179,6 +179,19 @@ export default function ChatWidget() {
                 </p>
               </div>
             </div>
+            <button 
+              onClick={() => {
+                setMessages([{ role: 'assistant', content: 'Xin chào! Tôi là trợ lý ảo của CK TEA. Tôi có thể giúp gì cho bạn hôm nay?' }]);
+                localStorage.removeItem('chat_messages');
+                localStorage.removeItem('chat_session_token');
+                setSessionToken('');
+                toast.success('Đã làm mới cuộc trò chuyện!');
+              }} 
+              className="text-white hover:text-gray-200 transition p-2"
+              title="Làm mới cuộc trò chuyện"
+            >
+              <i className="fas fa-sync-alt"></i>
+            </button>
           </div>
 
           {/* Body (Messages) */}

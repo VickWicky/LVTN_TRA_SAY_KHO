@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
+import ScrollToTop from './components/ScrollToTop';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -43,6 +44,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <ToastContainer 
         position="top-right" // Hiện ở góc trên bên phải
         autoClose={3000} // Tự động tắt sau 3 giây

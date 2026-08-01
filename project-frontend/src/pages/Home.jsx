@@ -228,6 +228,15 @@ export default function Home() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
                   {topProducts.map((product) => renderProductCard(product, false))}
                 </div>
+
+                <div className="text-center mt-12">
+                  <Link 
+                    to="/products" 
+                    className="inline-flex items-center justify-center bg-primary text-white font-medium py-3 px-8 rounded-full shadow-md hover:bg-green-700 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+                  >
+                    Xem Thêm <i className="fas fa-arrow-right ml-2"></i>
+                  </Link>
+                </div>
               </div>
             </section>
           )}
