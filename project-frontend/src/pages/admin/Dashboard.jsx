@@ -11,7 +11,6 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 export default function Dashboard() {
   const { roles } = useAuth();
-  const isStaff = roles.includes('staff');
   const isSales = roles.includes('sales');
   
   const [timeRange, setTimeRange] = useState('7days');
@@ -35,10 +34,6 @@ export default function Dashboard() {
     top_products: []
   });
   const [isLoading, setIsLoading] = useState(true);
-
-  if (isStaff) {
-    return <Navigate to="/admin/inventory" replace />;
-  }
 
   const fetchStats = async () => {
     setIsLoading(true);
@@ -414,7 +409,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-4 text-sm">
               {!isSales && (
                 <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full bg-primary"></span>
+                  <span className="w-3 h-3 rounded-full bg-blue-500"></span>
                   <span className="text-gray-600">Doanh thu</span>
                 </div>
               )}

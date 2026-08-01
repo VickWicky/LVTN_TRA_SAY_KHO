@@ -67,9 +67,9 @@ Route::post('/chat', [ChatController::class, 'sendMessage']);
 
 // Admin API — Bảo vệ bằng middleware auth + kiểm tra role
 Route::prefix('admin')
-    ->middleware(['auth:sanctum', 'role:admin|staff|sales'])
+    ->middleware(['auth:sanctum'])
     ->group(function () {
-        Route::get('/dashboard-stats', [AdminController::class, 'dashboardStats']);
+        Route::get('/dashboard-stats', [AdminController::class, 'dashboardStats'])->middleware('permission:view-dashboard');
         Route::get('/categories/active', [ProductController::class, 'getCategories'])->middleware('permission:manage-categories|view-categories');
         Route::get('/categories', [AdminCategoryController::class, 'index'])->middleware('permission:manage-categories|view-categories');
         Route::post('/categories', [AdminCategoryController::class, 'store'])->middleware('permission:manage-categories');

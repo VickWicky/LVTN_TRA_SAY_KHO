@@ -101,15 +101,18 @@ export function AuthProvider({ children }) {
   const isStaff = roles.includes('staff');
   const isSales = roles.includes('sales');
   
-  const isAdminOrStaff = isAdmin || isStaff;
+  // Kiểm tra xem có role nào khác 'user' không (dành cho nút Quản trị)
+  const isAdminOrStaff = roles.some(role => role !== 'user');
   
   // Custom permissions booleans based on roles
-  const hasAccountAccess = isAdmin || isSales;
-  const canManageProducts = isAdmin; // Staff & Sales only views
-  const canManageCategories = isAdmin; // Staff & Sales only views
+  const hasAccountAccess = isAdmin || permissions.includes('manage-users') || permissions.includes('view-users');
+  const canManageProducts = isAdmin || permissions.includes('manage-products');
+  const canManageCategories = isAdmin || permissions.includes('manage-categories');
+  const canManageOrders = isAdmin || permissions.includes('manage-orders');
 
   const value = {
     user,
+    setUser,
     roles,
     permissions,
     isLoggedIn,
@@ -121,6 +124,7 @@ export function AuthProvider({ children }) {
     hasAccountAccess,
     canManageProducts,
     canManageCategories,
+    canManageOrders,
     login,
     logout,
     fetchUser,

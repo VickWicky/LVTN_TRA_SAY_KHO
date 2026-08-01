@@ -78,9 +78,9 @@ function App() {
           } />
         </Route>
 
-        {/* Các trang dành cho Admin/Staff/Sales — bảo vệ bằng ProtectedRoute + role */}
+        {/* Các trang dành cho nhân viên — bảo vệ bằng ProtectedRoute */}
         <Route path="/admin" element={
-          <ProtectedRoute allowedRoles={['admin', 'staff', 'sales']}>
+          <ProtectedRoute requireAdminPanel={true}>
             <AdminLayout />
           </ProtectedRoute>
         }>

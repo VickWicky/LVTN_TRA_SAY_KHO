@@ -81,10 +81,14 @@ export default function AdminLayout() {
     window.location.href = '/login';
   };
 
-  // Lấy role label hiển thị
   const getRoleBadge = () => {
     if (roles.includes('admin')) return { label: 'Admin', color: 'bg-red-500' };
-    if (roles.includes('staff')) return { label: 'Nhân viên', color: 'bg-blue-500' };
+    
+    const activeRole = roles.find(r => r !== 'admin' && r !== 'user');
+    if (activeRole) {
+      return { label: 'Nhân viên', color: 'bg-blue-500' };
+    }
+
     return { label: 'User', color: 'bg-gray-500' };
   };
 
@@ -92,8 +96,8 @@ export default function AdminLayout() {
 
   const navItems = [
     { path: '/admin', label: 'Dashboard', icon: 'fas fa-chart-line', show: isAdmin || permissions?.includes('view-dashboard') },
-    { path: '/admin/categories', label: 'Quản lý Danh mục', icon: 'fas fa-tags', show: isAdmin || permissions?.includes('manage-categories') || permissions?.includes('manage-products') },
-    { path: '/admin/products', label: 'Quản lý Sản phẩm', icon: 'fas fa-box-open', show: true }, // Mọi người đều thấy
+    { path: '/admin/categories', label: 'Quản lý Danh mục', icon: 'fas fa-tags', show: isAdmin || permissions?.includes('manage-categories') || permissions?.includes('view-categories') },
+    { path: '/admin/products', label: 'Quản lý Sản phẩm', icon: 'fas fa-box-open', show: isAdmin || permissions?.includes('manage-products') || permissions?.includes('view-products') },
     { path: '/admin/promotions', label: 'Quản lý Khuyến mãi', icon: 'fas fa-gift', show: isAdmin || permissions?.includes('manage-promotions') },
     { path: '/admin/orders', label: 'Quản lý Đơn hàng', icon: 'fas fa-shopping-cart', show: isAdmin || permissions?.includes('manage-orders') },
     { path: '/admin/inventory-logs', label: 'Quản lý Xuất kho', icon: 'fas fa-file-export', show: isAdmin || permissions?.includes('manage-import') },
@@ -105,6 +109,15 @@ export default function AdminLayout() {
     { path: '/admin/banners', label: 'Quản lý Banner', icon: 'fas fa-images', show: isAdmin || permissions?.includes('manage-settings') },
     { path: '/admin/settings', label: 'Cấu hình Website', icon: 'fas fa-cogs', show: isAdmin || permissions?.includes('manage-settings') },
   ].filter(item => item.show);
+
+  useEffect(() => {
+    if (location.pathname === '/admin' && !isAdmin && !permissions?.includes('view-dashboard')) {
+      const firstAvailable = navItems.find(item => item.path !== '/admin');
+      if (firstAvailable) {
+        navigate(firstAvailable.path, { replace: true });
+      }
+    }
+  }, [location.pathname, isAdmin, permissions, navigate]); // navItems omitted to prevent infinite loop
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans">

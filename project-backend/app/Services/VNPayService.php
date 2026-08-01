@@ -145,13 +145,11 @@ class VNPayService
             if (isset($result['vnp_ResponseCode']) && $result['vnp_ResponseCode'] == '00') {
                 return ['success' => true, 'message' => 'Hoàn tiền thành công'];
             }
-            
-            // Fallback cho môi trường Test (Sinh viên thường test tay không tạo GD thật trên VNPay)
-            return ['success' => true, 'message' => 'Hoàn tiền giả lập thành công (Test Mode)'];
+        
         } catch (\Exception $e) {
             \Log::error("VNPay Refund Error: " . $e->getMessage());
             // Vẫn return true để không block flow Hủy đơn trong đồ án
-            return ['success' => true, 'message' => 'Lỗi kết nối VNPay, giả lập hoàn tiền'];
+            return ['fail' => true, 'message' => 'Lỗi kết nối VNPay, giả lập hoàn tiền'];
         }
     }
 }

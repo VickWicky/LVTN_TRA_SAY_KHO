@@ -74,7 +74,7 @@ export default function ChatWidget() {
           localStorage.setItem('chat_session_token', data.session_token);
         }
         
-        // Cố gắng parse nội dung để xem có phải JSON không (nếu AI trả về JSON thay vì text thường)
+        // Cố gắng parse nội dung để xem có phải JSON không
         let finalContent = data.reply;
         try {
           const parsed = JSON.parse(data.reply);

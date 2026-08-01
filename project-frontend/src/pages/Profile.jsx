@@ -297,7 +297,7 @@ export default function Profile() {
     });
     
     toast.success('Đã thêm các sản phẩm vào giỏ hàng!');
-    navigate('/checkout'); // Chuyển thẳng tới trang thanh toán
+    navigate('/checkout');
   };
 
   const confirmLogout = () => {
@@ -545,7 +545,7 @@ export default function Profile() {
                           let paymentColor = 'text-gray-500';
                           if (order.payment_method === 'vnpay') {
                               if (order.payment_status === 'paid') { paymentText = 'VNPAY (Đã TT)'; paymentColor = 'text-green-600 font-medium'; }
-                              else if (order.payment_status === 'refunded') { paymentText = 'VNPAY (Hoàn tiền)'; paymentColor = 'text-blue-600 font-medium'; }
+                              else if (order.payment_status === 'refunded') { paymentText = 'VNPAY (Đã hoàn tiền)'; paymentColor = 'text-blue-600 font-medium'; }
                               else { paymentText = 'VNPAY (Chưa TT)'; paymentColor = 'text-orange-500'; }
                           } else {
                               paymentText = 'Thanh toán COD';

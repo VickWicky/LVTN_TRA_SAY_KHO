@@ -238,7 +238,7 @@ export default function Orders() {
   const getPaymentBadge = (status) => {
     switch (status) {
       case 'paid': return <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded text-xs font-bold">Đã thanh toán</span>;
-      case 'refunded': return <span className="bg-purple-100 text-purple-700 px-2.5 py-1 rounded text-xs font-bold">Hoàn tiền</span>;
+      case 'refunded': return <span className="bg-purple-100 text-purple-700 px-2.5 py-1 rounded text-xs font-bold">Đã hoàn tiền</span>;
       case 'failed': return <span className="bg-red-100 text-red-700 px-2.5 py-1 rounded text-xs font-bold">Thất bại</span>;
       default: return <span className="bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded text-xs font-bold">Chờ thanh toán</span>;
     }
@@ -344,7 +344,7 @@ export default function Orders() {
                   <td className="p-4 text-center">
                     <div className="flex flex-col items-center gap-1.5">
                       <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">
-                        {order.payment_method === 'vnpay' ? 'VNPay' : order.payment_method === 'momo' ? 'MoMo' : 'Tiền mặt'}
+                        {order.payment_method === 'vnpay' ? 'VNPay' : 'Tiền mặt'}
                       </span>
                       {getPaymentBadge(order.payment_status)}
                     </div>
