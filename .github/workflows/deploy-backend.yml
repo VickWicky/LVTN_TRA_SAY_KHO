@@ -45,7 +45,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./project-backend/
-          server-dir: ./ # Đẩy code vào thư mục hiện tại của FTP (tránh tạo 2 lần public_html)
+          server-dir: ./ # Đẩy code vào thư mục hiện tại của FTP
           exclude: |
             **/.git*
             **/.git*/**
