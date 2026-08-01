@@ -25,7 +25,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2" # Hãy thay đổi nếu bạn dùng phiên bản PHP khác
+          php-version: "8.3" # Hãy thay đổi nếu bạn dùng phiên bản PHP khác
           extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom, filter, gd, iconv, json, libxml, pdo
 
       - name: Install Dependencies (Composer)
