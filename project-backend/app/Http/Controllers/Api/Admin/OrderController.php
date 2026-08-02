@@ -117,7 +117,7 @@ class OrderController extends Controller
 
             $order->save();
 
-            event(new \App\Events\OrderUpdated($order));
+            event(new \App\Events\OrderUpdated($order, "Đơn hàng {$order->order_code} vừa được cập nhật trạng thái"));
 
             DB::commit();
 
@@ -159,7 +159,7 @@ class OrderController extends Controller
         $order->payment_status = $request->input('payment_status');
         $order->save();
 
-        event(new \App\Events\OrderUpdated($order));
+        event(new \App\Events\OrderUpdated($order, "Đơn hàng {$order->order_code} vừa cập nhật trạng thái thanh toán"));
 
         return response()->json([
             'message' => 'Cập nhật trạng thái thanh toán thành công',
@@ -189,7 +189,7 @@ class OrderController extends Controller
             'shipping_address' => $request->shipping_address,
         ]);
 
-        event(new \App\Events\OrderUpdated($order));
+        event(new \App\Events\OrderUpdated($order, "Đơn hàng {$order->order_code} vừa cập nhật thông tin giao hàng"));
 
         return response()->json([
             'message' => 'Cập nhật thông tin giao hàng thành công',

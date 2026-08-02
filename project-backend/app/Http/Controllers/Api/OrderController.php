@@ -201,6 +201,8 @@ class OrderController extends Controller
 
             $order->save();
 
+            event(new \App\Events\OrderUpdated($order, "Đơn hàng {$order->order_code} vừa được khách hàng hủy"));
+
             DB::commit();
 
             return response()->json([
@@ -238,9 +240,10 @@ class OrderController extends Controller
             'shipping_phone' => $request->shipping_phone,
             'shipping_address' => $request->shipping_address,
         ]);
+        $order->save();
 
-        event(new \App\Events\OrderUpdated($order));
-
+        event(new \App\Events\OrderUpdated($order, "Đơn hàng {$order->order_code} vừa được khách hàng cập nhật thông tin giao hàng"));
+        
         return response()->json([
             'message' => 'Cập nhật thông tin giao hàng thành công',
             'order' => $order

@@ -16,10 +16,12 @@ class OrderUpdated implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $order;
+    public $message;
 
-    public function __construct(Order $order)
+    public function __construct(Order $order, $message = null)
     {
         $this->order = $order;
+        $this->message = $message;
     }
 
     public function broadcastOn(): array
@@ -35,7 +37,7 @@ class OrderUpdated implements ShouldBroadcastNow
             'order_id' => $this->order->id,
             'order_code' => $this->order->order_code,
             'customer_name' => $this->order->shipping_name,
-            'message' => 'Đơn hàng ' . $this->order->order_code . ' vừa được cập nhật thông tin giao hàng',
+            'message' => $this->message ?: 'Đơn hàng ' . $this->order->order_code . ' vừa được cập nhật',
         ];
     }
 }

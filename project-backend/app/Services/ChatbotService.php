@@ -185,7 +185,7 @@ PHONG CÁCH:
             Log::error('Gemini API Error: ' . $e->getMessage());
             return [
                 'role' => 'model',
-                'content' => 'Xin lỗi, hệ thống của tôi đang gặp chút sự cố kỹ thuật. Vui lòng thử lại sau.'
+                'content' => 'Xin lỗi, hệ thống của tôi đang gặp chút sự cố kỹ thuật: ' . $e->getMessage() . '. Vui lòng thử lại sau.'
             ];
         }
     }
