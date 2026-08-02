@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { getImageUrl } from '../../utils';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 export default function ChatWidget() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(() => {
     return localStorage.getItem('chat_is_open') === 'true';
   });
@@ -26,6 +27,14 @@ export default function ChatWidget() {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleMessageClick = (e) => {
+    // Intercept clicks on links inside chatbot to avoid full page reload
+    if (e.target.tagName === 'A' && e.target.getAttribute('href')?.startsWith('/')) {
+      e.preventDefault();
+      navigate(e.target.getAttribute('href'));
+    }
   };
 
   useEffect(() => {
@@ -101,6 +110,7 @@ export default function ChatWidget() {
       // Có thể dùng regex để thay thế \n thành <br/> để xuống dòng đẹp hơn
       return (
         <div 
+          onClick={handleMessageClick}
           className={`px-4 py-2 rounded-2xl max-w-[85%] text-sm shadow-sm ${
             msg.role === 'user' ? 'bg-primary text-white rounded-br-none ml-auto' : 'bg-gray-100 text-gray-800 rounded-bl-none leading-relaxed'
           }`}
