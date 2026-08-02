@@ -163,7 +163,7 @@ export default function Dashboard() {
 
   const formatStatusData = (stats.orders_by_status || []).map((item) => ({
     name: statusTranslations[item.name] || item.name,
-    value: item.value,
+    value: Number(item.value),
   }));
 
   const handleExportExcel = () => {
