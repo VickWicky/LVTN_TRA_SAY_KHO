@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -16,13 +17,16 @@ class ProductController extends Controller
 {
     public function getCategories()
     {
-        $categories = Category::where('is_active', true)->get();
+        $categories = Cache::remember('active_categories', 3600, function () {
+            return Category::where('is_active', true)->get()->toArray();
+        });
         return response()->json($categories);
     }
 
     private function applyPromotions($products)
     {
         $promotionService = new \App\Services\PromotionService();
+        $now = now();
 
         foreach ($products as $product) {
             foreach ($product->variants as $variant) {
@@ -44,12 +48,15 @@ class ProductController extends Controller
 
     public function index()
     {
-        $products = Product::with(['variants', 'category'])
-            ->where('is_active', true)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $products = Cache::remember('active_products', 600, function () {
+            $products = Product::with(['variants', 'category'])
+                ->where('is_active', true)
+                ->orderBy('created_at', 'desc')
+                ->get();
+            return $this->applyPromotions($products)->toArray();
+        });
            
-        return response()->json($this->applyPromotions($products));
+        return response()->json($products);
     }
 
     public function adminIndex(Request $request)
@@ -176,6 +183,7 @@ class ProductController extends Controller
 
             DB::commit();
 
+            Cache::forget('active_products');
             return response()->json([
                 'message' => 'Sản phẩm đã được tạo thành công!',
                 'product' => $product->load('variants')
@@ -269,6 +277,7 @@ class ProductController extends Controller
 
             DB::commit();
 
+            Cache::forget('active_products');
             return response()->json([
                 'message' => 'Cập nhật sản phẩm thành công!',
                 'product' => $product->load('variants')
@@ -292,6 +301,7 @@ class ProductController extends Controller
 
             DB::commit();
 
+            Cache::forget('active_products');
             return response()->json(['message' => 'Xóa sản phẩm thành công!'], 200);
 
         } catch (\Exception $e) {

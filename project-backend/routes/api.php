@@ -25,10 +25,14 @@ Route::get('/public/banners', [PublicController::class, 'getBanners']);
 Route::get('/public/settings', [PublicController::class, 'getSettings']);
 
 // Auth
-Route::post('/auth/google', [AuthController::class, 'googleLogin']);
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('throttle:15,1')->group(function () {
+    Route::post('/auth/google', [AuthController::class, 'googleLogin']);
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/payment/vnpay/create-url', [\App\Http\Controllers\Api\PaymentController::class, 'createVnpayUrl']);
+});
+
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/top-random', [ProductController::class, 'topRandom']);
 Route::get('/products/on-sale', [ProductController::class, 'onSale']);
@@ -36,7 +40,6 @@ Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/categories', [ProductController::class, 'getCategories']);
 
 Route::post('/orders', [OrderController::class, 'store']);
-Route::post('/payment/vnpay/create-url', [\App\Http\Controllers\Api\PaymentController::class, 'createVnpayUrl']);
 Route::post('/payment/vnpay/verify', [\App\Http\Controllers\Api\PaymentController::class, 'verifyVnpay']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -44,7 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
         $user = $request->user();
         return response()->json([
             'user' => $user,
-            'roles' => $user->getRoleNames(), // Trả về danh sách roles của user
+            'roles' => $user->getRoleNames(),
             'permissions' => $user->getAllPermissions()->pluck('name'),
         ]);
     });
@@ -65,7 +68,7 @@ Route::post('/contacts', [ContactController::class, 'store']);
 // Route Chatbot API (Public)
 Route::post('/chat', [ChatController::class, 'sendMessage']);
 
-// Admin API — Bảo vệ bằng middleware auth + kiểm tra role
+// Admin API
 Route::prefix('admin')
     ->middleware(['auth:sanctum'])
     ->group(function () {
@@ -92,7 +95,7 @@ Route::prefix('admin')
         Route::get('/inventory/receipts', [InventoryController::class, 'getReceipts'])->middleware('permission:manage-import');
         Route::post('/inventory/import', [InventoryController::class, 'importInventory'])->middleware('permission:manage-import');
         
-        // Lịch sử xuất kho
+        // Inventory-log
         Route::get('/inventory-logs', [\App\Http\Controllers\Api\Admin\InventoryLogController::class, 'index'])->middleware('permission:manage-import');
         Route::post('/inventory-logs', [\App\Http\Controllers\Api\Admin\InventoryLogController::class, 'store'])->middleware('permission:manage-import');
         

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
@@ -38,6 +39,7 @@ class CategoryController extends Controller
                 'is_active' => $request->has('is_active') ? $request->is_active : true,
             ]);
 
+            Cache::forget('active_categories');
             return response()->json([
                 'message' => 'Tạo danh mục thành công!',
                 'category' => $category
@@ -64,6 +66,7 @@ class CategoryController extends Controller
                 'is_active' => $request->has('is_active') ? $request->is_active : $category->is_active,
             ]);
 
+            Cache::forget('active_categories');
             return response()->json([
                 'message' => 'Cập nhật danh mục thành công!',
                 'category' => $category
@@ -79,6 +82,7 @@ class CategoryController extends Controller
             $category = Category::findOrFail($id);
             $category->delete();
 
+            Cache::forget('active_categories');
             return response()->json(['message' => 'Xóa danh mục thành công!'], 200);
         } catch (QueryException $e) {
             // Lỗi do ràng buộc khóa ngoại (ví dụ: đang có sản phẩm thuộc danh mục này)
