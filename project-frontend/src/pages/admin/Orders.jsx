@@ -568,7 +568,7 @@ export default function Orders() {
                                         : "paid",
                                     )
                                   }
-                                  className="w-full px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 text-left flex items-center gap-2 transition-colors"
+                                  className="w-full px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 text-left flex items-center gap-2 transition-colors"
                                 >
                                   <i
                                     className={`fas fa-exchange-alt w-4 text-gray-400`}
