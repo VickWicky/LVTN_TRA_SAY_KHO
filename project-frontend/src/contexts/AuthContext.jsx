@@ -102,7 +102,7 @@ export function AuthProvider({ children }) {
   const isSales = roles.includes('sales');
   
   // Kiểm tra xem có role nào khác 'user' không (dành cho nút Quản trị)
-  const isAdminOrStaff = roles.some(role => role !== 'user');
+  const isAdminOrStaff = roles.includes('admin') || roles.includes('staff') || roles.includes('warehouse') || roles.includes('sales');
   
   // Custom permissions booleans based on roles
   const hasAccountAccess = isAdmin || permissions.includes('manage-users') || permissions.includes('view-users');

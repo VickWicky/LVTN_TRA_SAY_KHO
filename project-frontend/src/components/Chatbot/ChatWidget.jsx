@@ -105,7 +105,7 @@ export default function ChatWidget() {
             msg.role === 'user' ? 'bg-primary text-white rounded-br-none ml-auto' : 'bg-gray-100 text-gray-800 rounded-bl-none leading-relaxed'
           }`}
           dangerouslySetInnerHTML={{__html: msg.content
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-blue-600 underline font-bold" target="_blank">$1</a>')
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-blue-600 underline font-bold">$1</a>')
             .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
             .replace(/^\* (.*?)$/gm, '&bull; $1')
             .replace(/\n/g, '<br/>')

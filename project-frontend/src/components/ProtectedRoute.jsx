@@ -44,10 +44,9 @@ export default function ProtectedRoute({
 
   // Đã đăng nhập nhưng cố vào trang Admin khi chỉ có mỗi role 'user'
   if (requireAdminPanel) {
-    // Nếu roles chỉ có đúng 'user' (hoặc mảng rỗng) => Bị chặn
-    const isOnlyUser =
-      roles.length === 0 || (roles.length === 1 && roles.includes("user"));
-    if (isOnlyUser) {
+    // Yêu cầu quyền admin hoặc staff để vào trang quản trị
+    const hasAdminOrStaff = roles.includes("admin") || roles.includes("staff") || roles.includes('warehouse') || roles.includes('sales');
+    if (!hasAdminOrStaff) {
       return renderAccessDenied();
     }
   }
