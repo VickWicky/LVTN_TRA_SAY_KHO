@@ -92,7 +92,7 @@ export default function ExportInventory() {
 
   useEffect(() => {
     fetchLogs(currentPage, debouncedSearch);
-  }, [currentPage, debouncedSearch]);
+  }, [currentPage, debouncedSearch, filterReason, filterStartDate, filterEndDate]);
 
   useEffect(() => {
     if (isExportDrawerOpen) {

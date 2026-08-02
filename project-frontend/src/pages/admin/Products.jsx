@@ -110,7 +110,7 @@ export default function Products() {
 
   useEffect(() => {
     fetchData(currentPage, debouncedSearch, filterStatus);
-  }, [currentPage, debouncedSearch]);
+  }, [currentPage, debouncedSearch, filterStatus]);
 
   const handleOpenForm = (product = null) => {
     if (product) {

@@ -114,7 +114,7 @@ export default function Orders() {
     return () => {
       window.removeEventListener('refreshData', handleRefresh);
     };
-  }, [currentPage, debouncedSearch]);
+  }, [currentPage, debouncedSearch, filterStatus]);
 
   const onStatusSelectChange = (orderId, newStatus) => {
     setConfirmModal({ isOpen: true, orderId, newStatus });
