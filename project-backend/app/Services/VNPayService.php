@@ -71,14 +71,22 @@ class VNPayService
 
     public function verifyPayment($inputData)
     {
-        $vnp_SecureHash = $inputData['vnp_SecureHash'];
-        unset($inputData['vnp_SecureHash']);
-        unset($inputData['vnp_SecureHashType']);
+        $vnp_SecureHash = $inputData['vnp_SecureHash'] ?? '';
+        
+        $vnpayData = [];
+        foreach ($inputData as $key => $value) {
+            if (substr($key, 0, 4) == "vnp_") {
+                $vnpayData[$key] = $value;
+            }
+        }
+        
+        unset($vnpayData['vnp_SecureHash']);
+        unset($vnpayData['vnp_SecureHashType']);
 
-        ksort($inputData);
+        ksort($vnpayData);
         $i = 0;
         $hashData = "";
-        foreach ($inputData as $key => $value) {
+        foreach ($vnpayData as $key => $value) {
             if ($i == 1) {
                 $hashData = $hashData . '&' . urlencode($key) . "=" . urlencode($value);
             } else {
@@ -89,9 +97,9 @@ class VNPayService
 
         $secureHash = hash_hmac('sha512', $hashData, $this->vnp_HashSecret);
 
-        if ($secureHash == $vnp_SecureHash) {
-            if ($inputData['vnp_ResponseCode'] == '00') {
-                return ['success' => true, 'message' => 'Giao dịch thành công', 'orderCode' => $inputData['vnp_TxnRef']];
+        if (hash_equals(strtolower($secureHash), strtolower($vnp_SecureHash))) {
+            if ($vnpayData['vnp_ResponseCode'] == '00') {
+                return ['success' => true, 'message' => 'Giao dịch thành công', 'orderCode' => $vnpayData['vnp_TxnRef']];
             }
             return ['success' => false, 'message' => 'Giao dịch không thành công hoặc bị hủy'];
         }
