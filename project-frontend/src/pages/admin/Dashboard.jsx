@@ -162,6 +162,13 @@ export default function Dashboard() {
     vnpay: "VNPay",
   };
 
+  const paymentStatusTranslations = {
+    pending: "Chưa thanh toán",
+    paid: "Đã thanh toán",
+    refunded: "Đã hoàn tiền",
+    failed: "Thất bại",
+  };
+
   const formatStatusData = (stats.orders_by_status || []).map((item) => ({
     name: statusTranslations[item.name] || item.name,
     value: Number(item.value),
@@ -227,6 +234,7 @@ export default function Dashboard() {
           "Khách Hàng",
           "Ngày Đặt",
           "Phương thức",
+          "Thanh Toán",
           "Tổng Tiền (VNĐ)",
           "Trạng Thái",
         ],
@@ -237,6 +245,7 @@ export default function Dashboard() {
           paymentMethodTranslations[order.payment_method] ||
             order.payment_method ||
             "N/A",
+          paymentStatusTranslations[order.payment_status] || order.payment_status || "N/A",
           Number(order.final_amount),
           statusTranslations[order.order_status] || order.order_status,
         ]),
@@ -247,6 +256,7 @@ export default function Dashboard() {
         { wch: 25 },
         { wch: 20 },
         { wch: 15 },
+        { wch: 18 },
         { wch: 18 },
         { wch: 15 },
       ];
