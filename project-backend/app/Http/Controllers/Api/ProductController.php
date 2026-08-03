@@ -17,9 +17,8 @@ class ProductController extends Controller
 {
     public function getCategories()
     {
-        $categories = Cache::remember('active_categories', 3600, function () {
-            return Category::where('is_active', true)->get();
-        });
+        // Tắt Cache cho Category để tránh lỗi Serialize Collection trên PHP 8.4 làm sập Frontend (categories.map is not a function)
+        $categories = Category::where('is_active', true)->get();
         return response()->json($categories);
     }
 
