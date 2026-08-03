@@ -17,7 +17,6 @@ class ProductController extends Controller
 {
     public function getCategories()
     {
-        // Tắt Cache cho Category để tránh lỗi Serialize Collection trên PHP 8.4 làm sập Frontend (categories.map is not a function)
         $categories = Category::where('is_active', true)->get();
         return response()->json($categories);
     }
@@ -31,7 +30,7 @@ class ProductController extends Controller
             foreach ($product->variants as $variant) {
                 // Set variant's sale price to null by default
                 $variant->sale_price = null;
-                $variant->promotion_id = null; // Thêm dòng này để FE có thể biết nếu cần
+                $variant->promotion_id = null;
 
                 $promoData = $promotionService->getBestPromotionForVariant($variant, $product->category_id, $product->id);
                 
@@ -47,9 +46,6 @@ class ProductController extends Controller
 
     public function index()
     {
-        // Server của bạn (iNET) đang chạy PHP 8.4.12 và có vẻ Driver File Cache đang bị lỗi 
-        // khi Serialize/Deserialize Collection của Laravel. 
-        // Lời khuyên: Tắt hoàn toàn Cache ở đây để đi bảo vệ cho an toàn.
         $products = Product::with(['variants', 'category'])
             ->where('is_active', true)
             ->orderBy('created_at', 'desc')
@@ -128,8 +124,8 @@ class ProductController extends Controller
         return response()->json($applied->first());
     }
 
-    // Admin
 
+    // Admin
     public function store(Request $request)
     {
         $validated = $request->validate([

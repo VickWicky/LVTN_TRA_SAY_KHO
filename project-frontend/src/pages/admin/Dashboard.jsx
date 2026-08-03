@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [timeRange, setTimeRange] = useState("7days");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
   const [stats, setStats] = useState({
     total_revenue: 0,
     total_orders: 0,
@@ -166,91 +167,116 @@ export default function Dashboard() {
     value: Number(item.value),
   }));
 
-  const handleExportExcel = () => {
-    const timeLabel =
-      timeRange === "today"
-        ? "Hôm nay"
-        : timeRange === "7days"
-          ? "7 Ngày qua"
-          : timeRange === "thisMonth"
-            ? "Tháng này"
-            : timeRange === "thisYear"
-              ? "Năm nay"
-              : "Tất cả";
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+      
+      const token = localStorage.getItem("token");
+      let url = `${API_URL}/api/admin/dashboard-stats?range=${timeRange}&export=true`;
+      if (timeRange === "custom") {
+        url += `&start=${startDate}&end=${endDate}`;
+      }
+      
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+      
+      if (!response.ok) throw new Error("Lỗi khi tải dữ liệu xuất báo cáo");
+      const exportStats = await response.json();
 
-    const wb = XLSX.utils.book_new();
+      const timeLabel =
+        timeRange === "today"
+          ? "Hôm nay"
+          : timeRange === "7days"
+            ? "7 Ngày qua"
+            : timeRange === "thisMonth"
+              ? "Tháng này"
+              : timeRange === "thisYear"
+                ? "Năm nay"
+                : "Tất cả";
 
-    // 1. Sheet Tổng Quan
-    const overviewData = [
-      ["BÁO CÁO TỔNG QUAN HỆ THỐNG"],
-      ["Thời gian lọc:", timeLabel],
-      ["Ngày xuất:", new Date().toLocaleString("vi-VN")],
-      [],
-      ["Thống kê chung"],
-      ["Chỉ tiêu", "Giá trị"],
-      ...(!isSales ? [["Tổng Doanh Thu (VNĐ)", stats.total_revenue]] : []),
-      ["Tổng Số Đơn Hàng", stats.total_orders],
-      ["Tổng Số Sản Phẩm", stats.total_products],
-      ["Tổng Số Khách Hàng", stats.total_users],
-    ];
-    const wsOverview = XLSX.utils.aoa_to_sheet(overviewData);
-    wsOverview["!cols"] = [{ wch: 30 }, { wch: 20 }];
-    XLSX.utils.book_append_sheet(wb, wsOverview, "Tổng Quan");
+      const wb = XLSX.utils.book_new();
 
-    // 2. Sheet Đơn Hàng
-    const ordersData = [
-      ["DANH SÁCH ĐƠN HÀNG GẦN ĐÂY"],
-      ["Thời gian lọc:", timeLabel],
-      [],
-      [
-        "Mã Đơn",
-        "Khách Hàng",
-        "Ngày Đặt",
-        "Phương thức",
-        "Tổng Tiền (VNĐ)",
-        "Trạng Thái",
-      ],
-      ...(stats.recent_orders || []).map((order) => [
-        order.order_code,
-        order.shipping_name,
-        new Date(order.created_at).toLocaleString("vi-VN"),
-        paymentMethodTranslations[order.payment_method] ||
-          order.payment_method ||
-          "N/A",
-        Number(order.final_amount),
-        statusTranslations[order.order_status] || order.order_status,
-      ]),
-    ];
-    const wsOrders = XLSX.utils.aoa_to_sheet(ordersData);
-    wsOrders["!cols"] = [
-      { wch: 15 },
-      { wch: 25 },
-      { wch: 20 },
-      { wch: 15 },
-      { wch: 18 },
-      { wch: 15 },
-    ];
-    XLSX.utils.book_append_sheet(wb, wsOrders, "Đơn Hàng Gần Đây");
+      // 1. Sheet Tổng Quan
+      const overviewData = [
+        ["BÁO CÁO TỔNG QUAN HỆ THỐNG"],
+        ["Thời gian lọc:", timeLabel],
+        ["Ngày xuất:", new Date().toLocaleString("vi-VN")],
+        [],
+        ["Thống kê chung"],
+        ["Chỉ tiêu", "Giá trị"],
+        ...(!isSales ? [["Tổng Doanh Thu (VNĐ)", exportStats.total_revenue]] : []),
+        ["Tổng Số Đơn Hàng", exportStats.total_orders],
+        ["Tổng Số Sản Phẩm", exportStats.total_products],
+        ["Tổng Số Khách Hàng", exportStats.total_users],
+      ];
+      const wsOverview = XLSX.utils.aoa_to_sheet(overviewData);
+      wsOverview["!cols"] = [{ wch: 30 }, { wch: 20 }];
+      XLSX.utils.book_append_sheet(wb, wsOverview, "Tổng Quan");
 
-    // 3. Sheet Sản Phẩm
-    const productsData = [
-      ["TOP SẢN PHẨM BÁN CHẠY"],
-      ["Thời gian lọc:", timeLabel],
-      [],
-      ["STT", "Tên Sản Phẩm", "Số Lượng Đã Bán"],
-      ...(stats.top_products || []).map((product, idx) => [
-        idx + 1,
-        product.name,
-        Number(product.total_sold),
-      ]),
-    ];
-    const wsProducts = XLSX.utils.aoa_to_sheet(productsData);
-    wsProducts["!cols"] = [{ wch: 8 }, { wch: 45 }, { wch: 20 }];
-    XLSX.utils.book_append_sheet(wb, wsProducts, "Top Sản Phẩm");
+      // 2. Sheet Đơn Hàng (Toàn bộ đơn hàng)
+      const ordersData = [
+        ["DANH SÁCH TOÀN BỘ ĐƠN HÀNG"],
+        ["Thời gian lọc:", timeLabel],
+        [],
+        [
+          "Mã Đơn",
+          "Khách Hàng",
+          "Ngày Đặt",
+          "Phương thức",
+          "Tổng Tiền (VNĐ)",
+          "Trạng Thái",
+        ],
+        ...(exportStats.recent_orders || []).map((order) => [
+          order.order_code,
+          order.shipping_name,
+          new Date(order.created_at).toLocaleString("vi-VN"),
+          paymentMethodTranslations[order.payment_method] ||
+            order.payment_method ||
+            "N/A",
+          Number(order.final_amount),
+          statusTranslations[order.order_status] || order.order_status,
+        ]),
+      ];
+      const wsOrders = XLSX.utils.aoa_to_sheet(ordersData);
+      wsOrders["!cols"] = [
+        { wch: 15 },
+        { wch: 25 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 18 },
+        { wch: 15 },
+      ];
+      XLSX.utils.book_append_sheet(wb, wsOrders, "Tất Cả Đơn Hàng");
 
-    // Xuất file
-    const fileName = `Bao_Cao_Thong_Ke_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    XLSX.writeFile(wb, fileName);
+      // 3. Sheet Sản Phẩm (Tất cả sản phẩm bán ra)
+      const productsData = [
+        ["DANH SÁCH SẢN PHẨM BÁN RA"],
+        ["Thời gian lọc:", timeLabel],
+        [],
+        ["STT", "Tên Sản Phẩm", "Số Lượng Đã Bán"],
+        ...(exportStats.top_products || []).map((product, idx) => [
+          idx + 1,
+          product.name,
+          Number(product.total_sold),
+        ]),
+      ];
+      const wsProducts = XLSX.utils.aoa_to_sheet(productsData);
+      wsProducts["!cols"] = [{ wch: 8 }, { wch: 45 }, { wch: 20 }];
+      XLSX.utils.book_append_sheet(wb, wsProducts, "Sản Phẩm Đã Bán");
+
+      // Xuất file
+      XLSX.writeFile(wb, `Bao_Cao_${timeRange}_${new Date().getTime()}.xlsx`);
+      toast.success("Xuất báo cáo thành công!");
+    } catch (error) {
+      console.error("Lỗi xuất Excel:", error);
+      toast.error("Có lỗi xảy ra khi xuất báo cáo.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const loadMockData = () => {
@@ -467,9 +493,16 @@ export default function Dashboard() {
 
           <button
             onClick={handleExportExcel}
-            className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg shadow-sm hover:bg-green-100 transition-colors text-sm font-medium text-green-700 cursor-pointer"
+            disabled={isExporting}
+            className={`flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg shadow-sm 
+hover:bg-green-100 transition-colors text-sm font-medium text-green-700 ${isExporting ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
           >
-            <i className="fas fa-file-excel"></i> Xuất Excel
+            {isExporting ? (
+              <i className="fas fa-spinner fa-spin text-green-600"></i>
+            ) : (
+              <i className="fas fa-file-excel text-green-600"></i>
+            )}
+            <span>{isExporting ? "Đang xuất..." : "Xuất Excel"}</span>
           </button>
 
           <button

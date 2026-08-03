@@ -104,7 +104,12 @@ class AdminController extends Controller
             'users' => $calcTrend($totalUsers, $prevUsers),
         ];
 
-        $recentOrdersQuery = Order::orderBy('created_at', 'desc')->take(5);
+        $isExport = $request->query('export') === 'true';
+
+        $recentOrdersQuery = Order::orderBy('created_at', 'desc');
+        if (!$isExport) {
+            $recentOrdersQuery->take(5);
+        }
         if ($range !== 'all') $recentOrdersQuery->whereBetween('created_at', [$startDate, $endDate]);
         $recentOrders = $recentOrdersQuery->get();
 
@@ -161,10 +166,14 @@ class AdminController extends Controller
             ->select('products.name', DB::raw('SUM(order_items.quantity) as total_sold'))
             ->where('orders.order_status', '!=', 'cancelled');
         if ($range !== 'all') $topProductsQuery->whereBetween('orders.created_at', [$startDate, $endDate]);
-        $topProducts = $topProductsQuery->groupBy('products.id', 'products.name')
-            ->orderByDesc('total_sold')
-            ->limit(5)
-            ->get();
+        $topProductsQuery = $topProductsQuery->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_sold');
+        
+        if (!$isExport) {
+            $topProductsQuery->limit(5);
+        }
+        
+        $topProducts = $topProductsQuery->get();
 
         // Revenue by month (for Bar Chart)
         $revenueByMonth = Order::select(

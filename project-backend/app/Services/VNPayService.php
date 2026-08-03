@@ -156,7 +156,6 @@ class VNPayService
         
         } catch (\Exception $e) {
             \Log::error("VNPay Refund Error: " . $e->getMessage());
-            // Vẫn return true để không block flow Hủy đơn trong đồ án
             return ['fail' => true, 'message' => 'Lỗi kết nối VNPay, giả lập hoàn tiền'];
         }
     }
