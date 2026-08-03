@@ -54,10 +54,6 @@ export default function Orders() {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      // For backend we may need to adjust the API to support status filter
-      // If backend doesn't support it yet, it will just ignore it.
-      // Assuming backend supports it or we filter on frontend.
-      // Let's pass it anyway: &status=${status}
       let url = `${API_URL}/api/admin/orders?page=${page}&search=${encodeURIComponent(search)}`;
       if (status !== "all") {
         url += `&status=${status}`;
@@ -72,10 +68,8 @@ export default function Orders() {
       if (fetchId !== fetchIdRef.current) return;
       if (res.ok) {
         const data = await res.json();
-        // Fallback filter if API doesn't support status param yet
-        let filteredData = data.data || data; // handle if data is paginated or just array
+        let filteredData = data.data || data;
         if (Array.isArray(data)) {
-          // Backend returns array (no pagination), we handle basic frontend filter
           filteredData =
             status === "all"
               ? data
@@ -90,8 +84,6 @@ export default function Orders() {
           setOrders(filteredData);
           setLastPage(1);
         } else {
-          // API returns paginated data (already filtered by backend)
-          // But since backend doesn't have status filter yet, we do frontend filtering if it's returning all data
           setOrders(data.data);
           setCurrentPage(data.current_page);
           setLastPage(data.last_page);

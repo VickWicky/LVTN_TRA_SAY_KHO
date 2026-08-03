@@ -18,7 +18,7 @@ class ProductController extends Controller
     public function getCategories()
     {
         $categories = Cache::remember('active_categories', 3600, function () {
-            return Category::where('is_active', true)->get()->toArray();
+            return Category::where('is_active', true)->get();
         });
         return response()->json($categories);
     }
@@ -49,14 +49,13 @@ class ProductController extends Controller
     public function index()
     {
         $products = Cache::remember('active_products', 600, function () {
-            $products = Product::with(['variants', 'category'])
+            return Product::with(['variants', 'category'])
                 ->where('is_active', true)
                 ->orderBy('created_at', 'desc')
                 ->get();
-            return $this->applyPromotions($products)->toArray();
         });
            
-        return response()->json($products);
+        return response()->json($this->applyPromotions($products));
     }
 
     public function adminIndex(Request $request)
@@ -79,7 +78,7 @@ class ProductController extends Controller
                   });
         }
            
-        return response()->json($query->paginate(10)); // Admin sees raw prices
+        return response()->json($query->paginate(10));
     }
 
     public function topRandom()
@@ -220,17 +219,14 @@ class ProductController extends Controller
             if ($request->hasFile('thumbnail')) {
                 $cloudinaryService = app(\App\Services\CloudinaryService::class);
                 
-                // If it's a local file, we just delete it from local storage
                 if ($thumbnailPath && strpos($thumbnailPath, '/storage/') === 0) {
                     $oldPath = str_replace('/storage/', '', $thumbnailPath);
                     if (Storage::disk('public')->exists($oldPath)) {
                         Storage::disk('public')->delete($oldPath);
                     }
                 } 
-                // We don't strictly need to delete the old Cloudinary image if we are using the same public_id 
-                // and overwrite=true, but we can do it if the slug changed (public_id changed)
                 elseif ($thumbnailPath && strpos($thumbnailPath, 'res.cloudinary.com') !== false) {
-                    // Extract old slug from old thumbnail path if needed, but CloudinaryService handles overwrites.
+
                 }
 
                 $publicId = 'products/' . $validated['slug'];
