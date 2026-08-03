@@ -48,7 +48,7 @@ class ProductController extends Controller
 
     public function index()
     {
-        $products = Cache::remember('active_products', 600, function () {
+        $products = Cache::remember('active_products_v2', 600, function () {
             return Product::with(['variants', 'category'])
                 ->where('is_active', true)
                 ->orderBy('created_at', 'desc')
