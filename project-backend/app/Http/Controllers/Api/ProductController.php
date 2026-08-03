@@ -48,12 +48,13 @@ class ProductController extends Controller
 
     public function index()
     {
-        $products = Cache::remember('active_products_v2', 600, function () {
-            return Product::with(['variants', 'category'])
-                ->where('is_active', true)
-                ->orderBy('created_at', 'desc')
-                ->get();
-        });
+        // Server của bạn (iNET) đang chạy PHP 8.4.12 và có vẻ Driver File Cache đang bị lỗi 
+        // khi Serialize/Deserialize Collection của Laravel. 
+        // Lời khuyên: Tắt hoàn toàn Cache ở đây để đi bảo vệ cho an toàn.
+        $products = Product::with(['variants', 'category'])
+            ->where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
            
         return response()->json($this->applyPromotions($products));
     }
