@@ -2,29 +2,26 @@
 
 namespace App\Mail;
 
+use App\Models\Order;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class OtpMail extends Mailable implements ShouldQueue
+class OrderConfirmationMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $otp;
-    public $type;
+    public $order;
 
     /**
      * Create a new message instance.
-     * $type can be 'register' or 'reset_password'
      */
-    public function __construct($otp, $type = 'register')
+    public function __construct(Order $order)
     {
-        $this->otp = $otp;
-        $this->type = $type;
+        $this->order = $order;
     }
 
     /**
@@ -32,12 +29,8 @@ class OtpMail extends Mailable implements ShouldQueue
      */
     public function envelope(): Envelope
     {
-        $subject = $this->type === 'reset_password' 
-            ? 'Mã xác nhận Đặt lại mật khẩu - CK Tea' 
-            : 'Mã xác nhận Đăng ký Tài khoản - CK Tea';
-
         return new Envelope(
-            subject: $subject,
+            subject: 'Xác nhận đơn hàng #' . $this->order->order_code . ' - CK Tea',
         );
     }
 
@@ -47,14 +40,14 @@ class OtpMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.otp',
+            view: 'emails.order-confirmation',
         );
     }
 
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, Attachment>
+     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
      */
     public function attachments(): array
     {

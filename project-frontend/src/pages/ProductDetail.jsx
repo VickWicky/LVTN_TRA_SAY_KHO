@@ -4,6 +4,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import { getImageUrl } from "../utils";
+import ProductCard from "../components/ProductCard";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -15,6 +16,8 @@ export default function ProductDetail() {
 
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [isRelatedLoading, setIsRelatedLoading] = useState(true);
 
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -38,8 +41,23 @@ export default function ProductDetail() {
       } finally {
         setIsLoading(false);
       }
+
+      // Lấy sản phẩm liên quan
+      try {
+        setIsRelatedLoading(true);
+        const relatedRes = await fetch(`${API_URL}/api/products/${id}/related`);
+        if (relatedRes.ok) {
+          const relatedData = await relatedRes.json();
+          setRelatedProducts(relatedData);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy sản phẩm liên quan:", error);
+      } finally {
+        setIsRelatedLoading(false);
+      }
     };
 
+    window.scrollTo({ top: 0, behavior: "smooth" });
     fetchProductDetail();
   }, [id, navigate]);
 
@@ -275,6 +293,26 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* SẢN PHẨM LIÊN QUAN */}
+      {relatedProducts.length > 0 && (
+        <div className="mt-20">
+          <h2 className="text-2xl font-bold text-dark mb-8 pb-2 border-b-2 border-primary inline-block">
+            Sản Phẩm Liên Quan
+          </h2>
+          {isRelatedLoading ? (
+            <div className="flex justify-center py-10 text-primary">
+              <i className="fas fa-spinner fa-spin text-3xl"></i>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {relatedProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

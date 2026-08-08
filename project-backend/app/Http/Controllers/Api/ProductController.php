@@ -123,7 +123,24 @@ class ProductController extends Controller
         $applied = $this->applyPromotions(collect([$product]));
         return response()->json($applied->first());
     }
+    public function getRelated($id)
+    {
+        $product = Product::where('is_active', true)->find($id);
 
+        if (!$product) {
+            return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
+        }
+
+        $relatedProducts = Product::with('variants')
+            ->where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->where('is_active', true)
+            ->inRandomOrder()
+            ->take(8)
+            ->get();
+
+        return response()->json($this->applyPromotions($relatedProducts));
+    }
 
     // Admin
     public function store(Request $request)

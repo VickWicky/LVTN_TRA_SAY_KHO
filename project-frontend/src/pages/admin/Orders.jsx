@@ -194,6 +194,32 @@ export default function Orders() {
     }
   };
 
+  const handleRetryRefund = async (orderId) => {
+    if (!window.confirm("Bạn có chắc chắn muốn thực hiện gọi API hoàn tiền VNPAY cho đơn hàng này không?")) return;
+    
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/api/admin/orders/${orderId}/refund`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || "Hoàn tiền thành công!");
+        fetchOrders(currentPage, debouncedSearch, filterStatus);
+      } else {
+        toast.error(data.message || "Hoàn tiền thất bại.");
+      }
+    } catch (error) {
+      console.error("Error retrying refund:", error);
+      toast.error("Lỗi hệ thống khi hoàn tiền.");
+    }
+  };
+
   const handleUpdateShipping = async (e) => {
     e.preventDefault();
     try {
@@ -568,6 +594,23 @@ export default function Orders() {
                                   {order.payment_status === "paid"
                                     ? "Đánh dấu chưa TT"
                                     : "Đánh dấu đã TT"}
+                                </button>
+                              </div>
+                            )}
+
+                          {order.order_status === "cancelled" &&
+                            order.payment_status === "paid" &&
+                            order.payment_method === "vnpay" && (
+                              <div className="border-t border-gray-100">
+                                <p className="px-4 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                                  Xử lý tài chính
+                                </p>
+                                <button
+                                  onClick={() => handleRetryRefund(order.id)}
+                                  className="w-full px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50 text-left flex items-center gap-2 transition-colors"
+                                >
+                                  <i className="fas fa-undo-alt w-4"></i> Thực
+                                  hiện Hoàn tiền
                                 </button>
                               </div>
                             )}

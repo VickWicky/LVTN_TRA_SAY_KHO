@@ -75,6 +75,13 @@ export default function Checkout() {
       return;
     }
 
+    if (formData.shipping_address.trim().length < 15) {
+      setError(
+        "Địa chỉ quá ngắn. Vui lòng nhập đầy đủ Số nhà, Phường/Xã, Quận/Huyện, Tỉnh/Thành phố.",
+      );
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -213,8 +220,6 @@ export default function Checkout() {
                 value={formData.shipping_phone}
                 onChange={handleChange}
                 required
-                pattern="[0-9]{10}"
-                title="Số điện thoại phải bao gồm đúng 10 chữ số"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
                 placeholder="Nhập số điện thoại"
               />

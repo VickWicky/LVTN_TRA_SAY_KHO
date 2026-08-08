@@ -20,7 +20,7 @@ class OrderController extends Controller
         $validated = $request->validate([
             'shipping_name' => 'required|string|max:255',
             'shipping_phone' => 'required|string|max:20',
-            'shipping_address' => 'required|string',
+            'shipping_address' => 'required|string|min:15|max:500',
             'payment_method' => 'required|string|in:cod,vnpay',
             'items' => 'required|array|min:1',
             'items.*.variant_id' => 'required|exists:product_variants,id',
@@ -135,6 +135,20 @@ class OrderController extends Controller
             // Phát event báo có đơn hàng mới qua Pusher/Reverb
             event(new OrderCreated($order));
 
+            // Gửi email xác nhận nếu là user đã đăng nhập
+            if ($user_id) {
+                $user = \App\Models\User::find($user_id);
+                if ($user && $user->email) {
+                    try {
+                        // Load relations để hiển thị tên sản phẩm trong email
+                        $orderForEmail = $order->load('items.variant.product');
+                        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OrderConfirmationMail($orderForEmail));
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Lỗi gửi email xác nhận đơn hàng: ' . $e->getMessage());
+                    }
+                }
+            }
+
             return response()->json([
                 'message' => 'Đặt hàng thành công',
                 'order' => $order->load('items')
@@ -179,12 +193,33 @@ class OrderController extends Controller
             // VNPay Refund
             if ($order->payment_method === 'vnpay' && $order->payment_status === 'paid') {
                 $vnPayService = app(\App\Services\VNPayService::class);
-                $refundResult = $vnPayService->refund($order->order_code, $order->final_amount, $order->created_at, $request->user()->name ?? 'Khach hang');
+                $refundResult = $vnPayService->refund($order->order_code, $order->final_amount, $order->created_at, $order->user->name ?? 'System');
                 
                 if ($refundResult['success']) {
                     $order->payment_status = 'refunded';
+                    $order->refunded_at = now();
+                    
+                    // Gửi mail hoàn tiền thành công ngay
+                    if ($order->user && $order->user->email) {
+                        try {
+                            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\RefundCompletedMail($order));
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::error('Lỗi gửi email RefundCompleted: ' . $e->getMessage());
+                        }
+                    }
                 } else {
-                    throw new \Exception("Lỗi hoàn tiền VNPay: " . $refundResult['message']);
+                    // Thất bại (chưa đủ 24h, v.v..): KHÔNG NÉM LỖI
+                    // Vẫn cho phép hủy đơn, nhưng payment_status giữ nguyên 'paid'
+                    \Illuminate\Support\Facades\Log::warning("Không thể hoàn tiền ngay lúc Hủy đơn VNPAY: " . $refundResult['message']);
+                    
+                    // Gửi mail báo chờ hoàn tiền
+                    if ($order->user && $order->user->email) {
+                        try {
+                            \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\RefundPendingMail($order));
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::error('Lỗi gửi email RefundPending: ' . $e->getMessage());
+                        }
+                    }
                 }
             }
 
@@ -223,7 +258,7 @@ class OrderController extends Controller
         $request->validate([
             'shipping_name' => 'required|string|max:255',
             'shipping_phone' => 'required|string|max:20',
-            'shipping_address' => 'required|string',
+            'shipping_address' => 'required|string|min:15|max:500',
         ]);
 
         $user_id = $request->user()->id;

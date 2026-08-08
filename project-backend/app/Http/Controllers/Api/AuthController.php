@@ -216,4 +216,70 @@ class AuthController extends Controller
             'message' => 'Đổi mật khẩu thành công.'
         ]);
     }
+
+    // 5. QUÊN MẬT KHẨU
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string|email'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Địa chỉ email không tồn tại trong hệ thống.'], 404);
+        }
+
+        if (!$user->password && $user->google_id) {
+            return response()->json(['message' => 'Tài khoản của bạn được tạo qua Google, không sử dụng mật khẩu. Vui lòng đăng nhập bằng nút Google!'], 400);
+        }
+
+        // Tạo OTP 6 số ngẫu nhiên
+        $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Lưu vào Cache 5 phút
+        \Illuminate\Support\Facades\Cache::put('forgot_password_otp_' . $request->email, $otp, now()->addMinutes(5));
+
+        // Gửi email
+        \Illuminate\Support\Facades\Mail::to($request->email)->send(new \App\Mail\OtpMail($otp, 'reset_password'));
+
+        return response()->json([
+            'message' => 'Mã OTP đặt lại mật khẩu đã được gửi đến email của bạn.',
+            'require_otp' => true
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string|email',
+            'otp' => 'required|string|size:6',
+            'new_password' => 'required|string|min:6',
+        ]);
+
+        $cachedOtp = \Illuminate\Support\Facades\Cache::get('forgot_password_otp_' . $request->email);
+
+        if (!$cachedOtp) {
+            return response()->json(['message' => 'Mã OTP đã hết hạn hoặc không tồn tại.'], 400);
+        }
+
+        if ($cachedOtp !== $request->otp) {
+            return response()->json(['message' => 'Mã OTP không chính xác.'], 400);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'Tài khoản không tồn tại.'], 404);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        // Xóa Cache
+        \Illuminate\Support\Facades\Cache::forget('forgot_password_otp_' . $request->email);
+
+        return response()->json([
+            'message' => 'Mật khẩu đã được đặt lại thành công. Bạn có thể đăng nhập bằng mật khẩu mới.'
+        ]);
+    }
 }

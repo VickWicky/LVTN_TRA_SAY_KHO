@@ -30,13 +30,16 @@ Route::middleware('throttle:15,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::post('/payment/vnpay/create-url', [\App\Http\Controllers\Api\PaymentController::class, 'createVnpayUrl']);
 });
 
 Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/top-random', [ProductController::class, 'topRandom']);
 Route::get('/products/on-sale', [ProductController::class, 'onSale']);
+Route::get('/products/top-random', [ProductController::class, 'topRandom']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
+Route::get('/products/{id}/related', [ProductController::class, 'getRelated']);
 Route::get('/categories', [ProductController::class, 'getCategories']);
 
 Route::post('/orders', [OrderController::class, 'store']);
@@ -87,7 +90,8 @@ Route::prefix('admin')
         Route::get('/orders', [AdminOrderController::class, 'index'])->middleware('permission:manage-orders');
         Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->middleware('permission:manage-orders');
         Route::put('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:manage-orders');
-        Route::put('/orders/{id}/shipping', [AdminOrderController::class, 'updateShipping'])->middleware('permission:manage-orders');
+        Route::patch('/orders/{id}/shipping', [AdminOrderController::class, 'updateShipping'])->middleware('permission:manage-orders');
+        Route::post('/orders/{id}/refund', [AdminOrderController::class, 'retryRefund'])->middleware('permission:manage-orders');
         Route::put('/orders/{id}/payment-status', [AdminOrderController::class, 'updatePaymentStatus'])->middleware('permission:manage-orders');
         
         Route::get('/inventory', [InventoryController::class, 'getInventory'])->middleware('permission:manage-import');

@@ -98,9 +98,20 @@ class OrderController extends Controller
                     
                     if ($refundResult['success']) {
                         $order->payment_status = 'refunded';
+                        $order->refunded_at = now();
+                        if ($order->user && $order->user->email) {
+                            try {
+                                \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\RefundCompletedMail($order));
+                            } catch (\Exception $e) {}
+                        }
                     } else {
-                        // Ném lỗi để rollback nếu không muốn cho phép hủy khi hoàn tiền lỗi
-                        throw new \Exception("Lỗi hoàn tiền VNPay: " . $refundResult['message']);
+                        // Thất bại (chưa đủ 24h): KHÔNG NÉM LỖI
+                        \Illuminate\Support\Facades\Log::warning("Admin Hủy đơn: Không thể hoàn tiền ngay VNPAY: " . $refundResult['message']);
+                        if ($order->user && $order->user->email) {
+                            try {
+                                \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\RefundPendingMail($order));
+                            } catch (\Exception $e) {}
+                        }
                     }
                 }
 
@@ -195,5 +206,55 @@ class OrderController extends Controller
             'message' => 'Cập nhật thông tin giao hàng thành công',
             'order' => $order
         ]);
+    }
+
+    /**
+     * Nút thực hiện hoàn tiền VNPAY thủ công cho đơn đã hủy nhưng chưa hoàn tiền
+     */
+    public function retryRefund(Request $request, $id)
+    {
+        $order = Order::with('user')->findOrFail($id);
+
+        if ($order->order_status !== 'cancelled') {
+            return response()->json(['message' => 'Chỉ có thể hoàn tiền cho đơn hàng đã Hủy.'], 400);
+        }
+
+        if ($order->payment_method !== 'vnpay' || $order->payment_status !== 'paid') {
+            return response()->json(['message' => 'Đơn hàng không đủ điều kiện hoàn tiền VNPAY.'], 400);
+        }
+
+        try {
+            $vnPayService = app(\App\Services\VNPayService::class);
+            $refundResult = $vnPayService->refund($order->order_code, $order->final_amount, $order->created_at, $request->user()->name ?? 'Admin');
+
+            if ($refundResult['success']) {
+                $order->payment_status = 'refunded';
+                $order->refunded_at = now();
+                $order->save();
+
+                event(new \App\Events\OrderUpdated($order, "Đơn hàng {$order->order_code} đã được hoàn tiền VNPAY thành công"));
+
+                if ($order->user && $order->user->email) {
+                    try {
+                        \Illuminate\Support\Facades\Mail::to($order->user->email)->send(new \App\Mail\RefundCompletedMail($order));
+                    } catch (\Exception $e) {}
+                }
+
+                return response()->json([
+                    'message' => 'Hoàn tiền VNPAY thành công!',
+                    'order' => $order
+                ]);
+            } else {
+                return response()->json([
+                    'message' => 'Hoàn tiền VNPAY thất bại: ' . $refundResult['message']
+                ], 400);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Retry Refund Error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Có lỗi hệ thống khi gọi VNPAY.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

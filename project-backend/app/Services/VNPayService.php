@@ -153,10 +153,13 @@ class VNPayService
             if (isset($result['vnp_ResponseCode']) && $result['vnp_ResponseCode'] == '00') {
                 return ['success' => true, 'message' => 'Hoàn tiền thành công'];
             }
+            
+            \Illuminate\Support\Facades\Log::warning("VNPAY từ chối hoàn tiền: ", $result ?? []);
+            return ['success' => false, 'message' => 'Giao dịch chưa đủ điều kiện hoàn tiền (thường do chưa qua 24h đối soát).'];
         
         } catch (\Exception $e) {
-            \Log::error("VNPay Refund Error: " . $e->getMessage());
-            return ['fail' => true, 'message' => 'Lỗi kết nối VNPay, giả lập hoàn tiền'];
+            \Illuminate\Support\Facades\Log::error("VNPay Refund Error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Lỗi kết nối VNPay: ' . $e->getMessage()];
         }
     }
 }
