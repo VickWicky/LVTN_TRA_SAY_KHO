@@ -89,8 +89,8 @@ class OrderController extends Controller
 
             $order->order_status = $newStatus;
 
-            // Nếu trạng thái mới là 'cancelled', tiến hành hoàn trả tồn kho và hoàn tiền VNPay
-            if ($newStatus === 'cancelled') {
+            // Nếu trạng thái mới là 'cancelled' hoặc 'returned' (Hoàn trả/Bom hàng), tiến hành hoàn trả tồn kho và hoàn tiền VNPay
+            if (in_array($newStatus, ['cancelled', 'returned'])) {
                 // VNPay Refund
                 if ($order->payment_method === 'vnpay' && $order->payment_status === 'paid') {
                     $vnPayService = app(\App\Services\VNPayService::class);

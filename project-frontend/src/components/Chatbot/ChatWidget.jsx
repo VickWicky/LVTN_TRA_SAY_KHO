@@ -134,7 +134,7 @@ export default function ChatWidget() {
                 <p className="text-primary font-semibold text-sm">{Number(product.price).toLocaleString()}₫</p>
                 <div className="flex gap-2 mt-2">
                   <Link 
-                    to={`/product/${product.id}`} 
+                    to={`/product/${product.slug || product.id}`} 
                     className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200 transition"
                   >
                     Xem chi tiết

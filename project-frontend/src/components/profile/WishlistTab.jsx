@@ -59,7 +59,7 @@ export default function WishlistTab() {
                 </button>
 
                 <Link
-                  to={`/product/${product.id}`}
+                  to={`/product/${product.slug || product.id}`}
                   className="block relative h-48 overflow-hidden bg-bglight flex items-center justify-center group"
                 >
                   <img
@@ -70,7 +70,7 @@ export default function WishlistTab() {
                 </Link>
 
                 <div className="p-4 flex flex-col flex-1">
-                  <Link to={`/product/${product.id}`}>
+                  <Link to={`/product/${product.slug || product.id}`}>
                     <h3 className="text-md font-bold mb-1 hover:text-primary transition line-clamp-1">
                       {product.name}
                     </h3>

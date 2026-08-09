@@ -12,8 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Cập nhật kiểu ENUM cho cột apply_to
-        DB::statement("ALTER TABLE promotions MODIFY COLUMN apply_to ENUM('all', 'category', 'product', 'variant') DEFAULT 'all'");
+        // Cập nhật kiểu ENUM cho cột apply_to (Bỏ qua nếu đang chạy Test bằng SQLite)
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE promotions MODIFY COLUMN apply_to ENUM('all', 'category', 'product', 'variant') DEFAULT 'all'");
+        }
 
         // Xóa cột JSON cũ
         Schema::table('promotions', function (Blueprint $table) {

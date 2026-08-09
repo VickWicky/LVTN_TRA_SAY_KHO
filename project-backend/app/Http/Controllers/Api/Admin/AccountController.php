@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Rules\ValidPhoneNumber;
 
 class AccountController extends Controller
 {
@@ -36,7 +37,7 @@ class AccountController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:users,name',
             'email' => 'required|string|email|max:255|unique:users,email',
-            'phone' => 'nullable|string|max:20',
+            'phone' => ['nullable', 'string', 'max:20', new ValidPhoneNumber],
             'password' => 'required|string|min:6',
             'role' => 'required|string|exists:roles,name'
         ], [
@@ -71,7 +72,7 @@ class AccountController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:users,name,' . $id,
-            'phone' => 'nullable|string|max:20',
+            'phone' => ['nullable', 'string', 'max:20', new ValidPhoneNumber],
             'password' => 'nullable|string|min:6',
             'role' => 'required|string|exists:roles,name'
         ], [
@@ -142,8 +143,8 @@ class AccountController extends Controller
         }
 
         if ($user->hasRole('admin') && !$request->is_active) {
-            $adminCount = User::role('admin')->count();
-            if ($adminCount <= 1) {
+            $adminCount = User::role('admin')->where('is_active', true)->count();
+            if ($adminCount <= 1 && $user->is_active) {
                 return response()->json(['message' => 'Không thể khóa Quản trị viên duy nhất còn lại trên hệ thống!'], 403);
             }
         }

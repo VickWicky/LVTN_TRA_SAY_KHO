@@ -14,9 +14,7 @@ export default function ProductCard({ product }) {
   if (product.variants && product.variants.length > 0) {
     const currentPrices = product.variants.map((v) => {
       if (v.sale_price && v.sale_price > 0 && v.sale_price < v.price) {
-        const discountPercent = Math.round(
-          (1 - v.sale_price / v.price) * 100
-        );
+        const discountPercent = Math.round((1 - v.sale_price / v.price) * 100);
         if (discountPercent > maxDiscountPercent)
           maxDiscountPercent = discountPercent;
         isDiscounted = true;
@@ -27,16 +25,16 @@ export default function ProductCard({ product }) {
     minPrice = Math.min(...currentPrices);
     maxPrice = Math.max(...currentPrices);
   } else if (product.minPrice !== undefined) {
-      // Allow passing pre-calculated prices if already calculated
-      minPrice = product.minPrice;
-      maxPrice = product.maxPrice;
-      isDiscounted = product.isDiscounted;
-      maxDiscountPercent = product.maxDiscountPercent;
+    // Allow passing pre-calculated prices if already calculated
+    minPrice = product.minPrice;
+    maxPrice = product.maxPrice;
+    isDiscounted = product.isDiscounted;
+    maxDiscountPercent = product.maxDiscountPercent;
   }
 
   return (
     <article
-      onClick={() => navigate(`/product/${product.id}`)}
+      onClick={() => navigate(`/product/${product.slug || product.id}`)}
       className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition transform hover:-translate-y-2 cursor-pointer group flex flex-col h-full"
     >
       <div className="relative h-64 overflow-hidden bg-bglight flex items-center justify-center">

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->timestamp('refunded_at')->nullable()->after('payment_status');
+            $table->timestamp('refunded_at')->nullable()->after('updated_at');
         });
     }
 

@@ -27,12 +27,15 @@ class PromotionController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'discount_type' => 'required|in:percent,fixed',
-            'discount_value' => 'required|numeric|min:0',
-            'start_date' => 'required|date',
+            'discount_value' => 'required|numeric|min:0' . ($request->discount_type === 'percent' ? '|max:100' : ''),
+            'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
             'apply_to' => 'required|in:all,category,product,variant',
             'reference_ids' => 'nullable|array',
             'is_active' => 'boolean'
+        ], [
+            'discount_value.max' => 'Mức giảm giá theo phần trăm không được vượt quá 100%.',
+            'start_date.after_or_equal' => 'Ngày bắt đầu khuyến mãi không được nhỏ hơn ngày hiện tại.',
         ]);
 
         if ($validator->fails()) {
@@ -57,12 +60,16 @@ class PromotionController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255',
             'discount_type' => 'sometimes|required|in:percent,fixed',
-            'discount_value' => 'sometimes|required|numeric|min:0',
+            'discount_value' => 'sometimes|required|numeric|min:0' . (
+                ($request->has('discount_type') ? $request->discount_type : $promotion->discount_type) === 'percent' ? '|max:100' : ''
+            ),
             'start_date' => 'sometimes|required|date',
             'end_date' => 'sometimes|required|date|after_or_equal:start_date',
             'apply_to' => 'sometimes|required|in:all,category,product,variant',
             'reference_ids' => 'nullable|array',
             'is_active' => 'boolean'
+        ], [
+            'discount_value.max' => 'Mức giảm giá theo phần trăm không được vượt quá 100%.',
         ]);
 
         if ($validator->fails()) {

@@ -114,7 +114,10 @@ class ProductController extends Controller
             }
         ])
             ->where('is_active', true)
-            ->find($id);
+            ->where(function ($q) use ($id) {
+                $q->where('id', $id)->orWhere('slug', $id);
+            })
+            ->first();
 
         if (!$product) {
             return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
@@ -125,7 +128,11 @@ class ProductController extends Controller
     }
     public function getRelated($id)
     {
-        $product = Product::where('is_active', true)->find($id);
+        $product = Product::where('is_active', true)
+            ->where(function ($q) use ($id) {
+                $q->where('id', $id)->orWhere('slug', $id);
+            })
+            ->first();
 
         if (!$product) {
             return response()->json(['message' => 'Sản phẩm không tồn tại'], 404);
@@ -159,6 +166,24 @@ class ProductController extends Controller
             'slug.unique' => 'Đường dẫn sản phẩm (slug) đã tồn tại.'
         ]);
 
+        $variants = json_decode($request->variants, true);
+        $variantValidator = \Illuminate\Support\Facades\Validator::make(['variants' => $variants], [
+            'variants' => 'required|array|min:1',
+            'variants.*.sku' => 'required|string|distinct|unique:product_variants,sku',
+            'variants.*.weight' => 'required|numeric|min:0.1',
+            'variants.*.price' => 'required|numeric|min:0',
+        ], [
+            'variants.*.sku.required' => 'Mã SKU không được bỏ trống.',
+            'variants.*.sku.unique' => 'Mã SKU :input đã tồn tại trong hệ thống.',
+            'variants.*.sku.distinct' => 'Các mã SKU không được trùng nhau.',
+            'variants.*.weight.min' => 'Khối lượng phải lớn hơn 0.',
+            'variants.*.price.min' => 'Giá bán không được là số âm.',
+        ]);
+
+        if ($variantValidator->fails()) {
+            return response()->json(['message' => 'Dữ liệu biến thể không hợp lệ', 'errors' => $variantValidator->errors()], 422);
+        }
+
         try {
             DB::beginTransaction();
 
@@ -181,8 +206,6 @@ class ProductController extends Controller
                 'thumbnail' => $thumbnailPath,
                 'is_active' => $request->has('is_active') ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN) : true,
             ]);
-
-            $variants = json_decode($request->variants, true);
 
             foreach ($variants as $variant) {
                 ProductVariant::create([
@@ -225,6 +248,36 @@ class ProductController extends Controller
             'slug.unique' => 'Đường dẫn sản phẩm (slug) đã tồn tại.'
         ]);
 
+        $variants = json_decode($request->variants, true);
+        $variantValidator = \Illuminate\Support\Facades\Validator::make(['variants' => $variants], [
+            'variants' => 'required|array|min:1',
+            'variants.*.sku' => 'required|string|distinct',
+            'variants.*.weight' => 'required|numeric|min:0.1',
+            'variants.*.price' => 'required|numeric|min:0',
+        ], [
+            'variants.*.sku.required' => 'Mã SKU không được bỏ trống.',
+            'variants.*.sku.distinct' => 'Các mã SKU không được trùng nhau.',
+            'variants.*.weight.min' => 'Khối lượng phải lớn hơn 0.',
+            'variants.*.price.min' => 'Giá bán không được là số âm.',
+        ]);
+
+        if ($variantValidator->fails()) {
+            return response()->json(['message' => 'Dữ liệu biến thể không hợp lệ', 'errors' => $variantValidator->errors()], 422);
+        }
+
+        // Custom SKU unique check for update
+        foreach ($variants as $index => $variant) {
+            $existing = \App\Models\ProductVariant::where('sku', $variant['sku'])
+                        ->where('product_id', '!=', $product->id)
+                        ->first();
+            if ($existing) {
+                return response()->json([
+                    'message' => 'Dữ liệu biến thể không hợp lệ', 
+                    'errors' => ['variants.' . $index . '.sku' => ["Mã SKU '{$variant['sku']}' đã được sử dụng cho sản phẩm khác."]]
+                ], 422);
+            }
+        }
+
         try {
             DB::beginTransaction();
 
@@ -259,7 +312,6 @@ class ProductController extends Controller
                 'is_active' => $request->has('is_active') ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN) : $product->is_active,
             ]);
 
-            $variants = json_decode($request->variants, true);
             $submittedSkus = [];
 
             foreach ($variants as $variant) {

@@ -69,9 +69,31 @@ class InventoryController extends Controller
             'items.*.variant_id' => 'required|exists:product_variants,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.import_price' => 'required|numeric|min:0',
-            'items.*.mfg_date' => 'required|date|before:items.*.exp_date',
+            'items.*.mfg_date' => 'required|date|before_or_equal:today',
             'items.*.exp_date' => 'required|date|after:items.*.mfg_date',
+        ], [
+            'items.*.mfg_date.before_or_equal' => 'Ngày sản xuất không được lớn hơn ngày hiện tại.',
         ]);
+
+        $minValidDate = now()->addDays(30)->startOfDay();
+
+        foreach ($validated['items'] as $index => $item) {
+            $expDate = \Carbon\Carbon::parse($item['exp_date']);
+            if ($expDate->lessThan($minValidDate)) {
+                return response()->json([
+                    'message' => 'Lô hàng không hợp lệ (Cận date)',
+                    'errors' => ["items.{$index}.exp_date" => ['Hạn sử dụng quá ngắn. Sản phẩm phải còn hạn ít nhất 30 ngày để đảm bảo an toàn.']]
+                ], 422);
+            }
+
+            $variant = \App\Models\ProductVariant::find($item['variant_id']);
+            if ($variant && $item['import_price'] > $variant->price) {
+                return response()->json([
+                    'message' => 'Lô hàng không hợp lệ (Lỗ vốn)',
+                    'errors' => ["items.{$index}.import_price" => ["Giá nhập (" . number_format($item['import_price']) . "đ) không được cao hơn giá bán lẻ (" . number_format($variant->price) . "đ)."]]
+                ], 422);
+            }
+        }
 
         try {
             DB::beginTransaction();

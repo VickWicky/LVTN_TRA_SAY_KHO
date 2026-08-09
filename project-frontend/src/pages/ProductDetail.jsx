@@ -42,7 +42,6 @@ export default function ProductDetail() {
         setIsLoading(false);
       }
 
-      // Lấy sản phẩm liên quan
       try {
         setIsRelatedLoading(true);
         const relatedRes = await fetch(`${API_URL}/api/products/${id}/related`);

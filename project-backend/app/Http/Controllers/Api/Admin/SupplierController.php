@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Supplier;
+use App\Rules\ValidPhoneNumber;
 
 class SupplierController extends Controller
 {
@@ -27,7 +28,7 @@ class SupplierController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:suppliers,name',
-            'phone' => 'nullable|string|max:20',
+            'phone' => ['nullable', 'string', 'max:20', new ValidPhoneNumber],
             'email' => 'nullable|email|max:255',
             'address' => 'nullable|string|max:500'
         ], [
@@ -46,7 +47,7 @@ class SupplierController extends Controller
     {
         $validated = $request->validate([
             'name' => "required|string|max:255|unique:suppliers,name,{$id}",
-            'phone' => 'nullable|string|max:20',
+            'phone' => ['nullable', 'string', 'max:20', new ValidPhoneNumber],
             'email' => 'nullable|email|max:255',
             'address' => 'nullable|string|max:500'
         ], [

@@ -78,20 +78,22 @@ class CategoryController extends Controller
 
     public function destroy($id)
     {
-        try {
-            $category = Category::findOrFail($id);
-            $category->delete();
+        $category = Category::find($id);
+        
+        if (!$category) {
+            return response()->json(['message' => 'Không tìm thấy danh mục.'], 404);
+        }
 
+        if ($category->products()->count() > 0) {
+            return response()->json([
+                'message' => 'Không thể xóa danh mục này vì đang có sản phẩm thuộc danh mục.'
+            ], 400);
+        }
+
+        try {
+            $category->delete();
             Cache::forget('active_categories');
             return response()->json(['message' => 'Xóa danh mục thành công!'], 200);
-        } catch (QueryException $e) {
-            // Lỗi do ràng buộc khóa ngoại (ví dụ: đang có sản phẩm thuộc danh mục này)
-            if ($e->getCode() == "23000") {
-                return response()->json([
-                    'message' => 'Không thể xóa danh mục này vì đang có sản phẩm thuộc danh mục.'
-                ], 400);
-            }
-            return response()->json(['message' => 'Lỗi khi xóa danh mục', 'error' => $e->getMessage()], 500);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Lỗi khi xóa danh mục', 'error' => $e->getMessage()], 500);
         }
