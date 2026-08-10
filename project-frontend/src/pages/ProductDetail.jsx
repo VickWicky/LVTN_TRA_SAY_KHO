@@ -164,14 +164,7 @@ export default function ProductDetail() {
             )}
           </div>
 
-          <div
-            className="text-gray-600 leading-relaxed mb-8 border-b border-gray-100 pb-8 prose"
-            dangerouslySetInnerHTML={{
-              __html:
-                product.description ||
-                "Chưa có mô tả chi tiết cho sản phẩm này.",
-            }}
-          />
+
 
           {/* KHU VỰC CHỌN GÓI TRÀ */}
           <div className="mb-8">

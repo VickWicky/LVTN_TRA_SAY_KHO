@@ -75,7 +75,7 @@ export default function ProductCard({ product }) {
           {product.name}
         </h3>
         <p className="text-sm text-light mb-4 line-clamp-2 flex-1">
-          {product.description}
+          {product.description ? product.description.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ') : ''}
         </p>
 
         <div className="mt-auto border-t border-gray-50 pt-4">
