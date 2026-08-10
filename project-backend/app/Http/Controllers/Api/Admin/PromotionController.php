@@ -64,7 +64,17 @@ class PromotionController extends Controller
                 ($request->has('discount_type') ? $request->discount_type : $promotion->discount_type) === 'percent' ? '|max:100' : ''
             ),
             'start_date' => 'sometimes|required|date',
-            'end_date' => 'sometimes|required|date|after_or_equal:start_date',
+            'end_date' => [
+                'sometimes',
+                'required',
+                'date',
+                function ($attribute, $value, $fail) use ($request, $promotion) {
+                    $startDate = $request->input('start_date', $promotion->start_date);
+                    if (\Carbon\Carbon::parse($value)->lt(\Carbon\Carbon::parse($startDate))) {
+                        $fail('Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.');
+                    }
+                },
+            ],
             'apply_to' => 'sometimes|required|in:all,category,product,variant',
             'reference_ids' => 'nullable|array',
             'is_active' => 'boolean'
@@ -89,7 +99,6 @@ class PromotionController extends Controller
 
     private function syncReferences(Promotion $promotion, $applyTo, $referenceIds)
     {
-        // Xóa liên kết cũ để đảm bảo sạch sẽ nếu đổi apply_to
         if ($applyTo !== 'category') $promotion->categories()->detach();
         if ($applyTo !== 'product') $promotion->products()->detach();
         if ($applyTo !== 'variant') $promotion->variants()->detach();

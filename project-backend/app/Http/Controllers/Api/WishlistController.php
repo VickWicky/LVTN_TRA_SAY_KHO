@@ -16,7 +16,6 @@ class WishlistController extends Controller
             ->where('user_id', $user_id)
             ->get();
 
-        // Extract products from wishlists
         $products = $wishlists->map(function ($item) {
             return $item->product;
         })->filter()->values();

@@ -110,7 +110,6 @@ PHONG CÁCH:
 
             $parts = $data['candidates'][0]['content']['parts'];
             
-            // Fix PHP json_encode issue where empty object {} becomes empty array []
             foreach ($parts as &$part) {
                 if (isset($part['functionCall'])) {
                     if (!isset($part['functionCall']['args']) || empty($part['functionCall']['args'])) {
@@ -120,7 +119,6 @@ PHONG CÁCH:
             }
             unset($part);
 
-            // Check if there is a function call
             $toolCallsToExecute = [];
             $textResponse = '';
             
@@ -134,7 +132,6 @@ PHONG CÁCH:
             }
 
             if (count($toolCallsToExecute) > 0) {
-                // Add the model's functionCall to message history
                 $messages[] = [
                     'role' => 'model',
                     'parts' => $parts
@@ -147,10 +144,8 @@ PHONG CÁCH:
                     $args = $call['args'] ?? [];
                     $argsArray = is_object($args) ? (array) $args : $args;
                     
-                    // Execute tool locally
                     $resultJson = $this->toolCallingService->executeTool($functionName, $argsArray, $userId, $sessionToken);
                     
-                    // Decode so we can pass as an object to Gemini
                     $resultData = json_decode($resultJson, true);
                     Log::info("Tool Result for $functionName: $resultJson");
                     
@@ -165,17 +160,14 @@ PHONG CÁCH:
                     ];
                 }
 
-                // Add functionResponse to messages
                 $messages[] = [
                     'role' => 'user',
                     'parts' => $functionResponses
                 ];
 
-                // Call Gemini again with the tool result
                 return $this->handleUserMessage($messages, $userId, $sessionToken);
             }
 
-            // Normal text response
             return [
                 'role' => 'model',
                 'content' => $textResponse

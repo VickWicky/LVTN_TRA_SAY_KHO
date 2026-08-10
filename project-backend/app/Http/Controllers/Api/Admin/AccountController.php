@@ -10,9 +10,6 @@ use App\Rules\ValidPhoneNumber;
 
 class AccountController extends Controller
 {
-    /**
-     * Get all users with their roles
-     */
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -26,7 +23,6 @@ class AccountController extends Controller
                   ->orWhere('phone', 'like', "%{$search}%");
         }
 
-        // Phân trang 10 users mỗi trang
         $users = $query->paginate($request->get('per_page', 10));
         
         return response()->json($users);
@@ -65,9 +61,6 @@ class AccountController extends Controller
         ], 201);
     }
 
-    /**
-     * Update user account (info, password, role)
-     */
     public function updateAccount(Request $request, $id)
     {
         $request->validate([
@@ -81,36 +74,29 @@ class AccountController extends Controller
 
         $user = User::findOrFail($id);
         
-        // Cập nhật thông tin cơ bản
         $user->name = $request->name;
         $user->phone = $request->phone;
         
-        // Cập nhật mật khẩu nếu có
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }
 
-        // --- BẢO VỆ ROLE ---
         if ($request->has('role')) {
             $currentRole = $user->roles->first()->name ?? 'customer';
             $newRole = $request->role;
 
             if ($currentRole !== $newRole) {
-                // Bảo vệ: Admin không thể tự đổi quyền của chính mình
                 if ($user->id === auth()->id()) {
                     return response()->json(['message' => 'Bạn không thể tự thay đổi quyền của chính mình!'], 403);
                 }
 
-                // Bảo vệ: Nếu user hiện tại là Admin và đang bị giáng chức
                 if ($user->hasRole('admin') && $newRole !== 'admin') {
-                    // Kiểm tra xem hệ thống còn admin nào khác không
                     $adminCount = User::role('admin')->count();
                     if ($adminCount <= 1) {
                         return response()->json(['message' => 'Không thể hạ quyền vì đây là Quản trị viên duy nhất còn lại trên hệ thống!'], 403);
                     }
                 }
                 
-                // Cập nhật role
                 if ($newRole === 'customer') {
                     $user->syncRoles([]);
                 } else {
@@ -127,9 +113,6 @@ class AccountController extends Controller
         ]);
     }
 
-    /**
-     * Update user active status
-     */
     public function updateStatus(Request $request, $id)
     {
         $request->validate([

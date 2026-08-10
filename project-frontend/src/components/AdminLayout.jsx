@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import echo from '../utils/echo';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useAuth } from '../contexts/AuthContext';
-import AdminProfileModal from './admin/AdminProfileModal';
+import { useState, useEffect } from "react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import echo from "../utils/echo";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "../contexts/AuthContext";
+import AdminProfileModal from "./admin/AdminProfileModal";
 
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, roles, permissions, logout, isAdmin, isStaff, isSales } = useAuth();
+  const { user, roles, permissions, logout, isAdmin, isStaff, isSales } =
+    useAuth();
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -18,57 +19,76 @@ export default function AdminLayout() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
-    console.log('✅ Đang kết nối Reverb...');
+    const channel = echo.channel("admin-notifications");
 
-    const channel = echo.channel('admin-notifications');
-
-    channel.listen('OrderCreated', (data) => {
-      setUnreadCount(prev => prev + 1);
-      setNotifications(prev => {
-        if (prev.some(n => n.order_id === data.order_id && n.message === `Đơn hàng mới từ: ${data.customer_name}`)) return prev;
+    channel.listen("OrderCreated", (data) => {
+      setUnreadCount((prev) => prev + 1);
+      setNotifications((prev) => {
+        if (
+          prev.some(
+            (n) =>
+              n.order_id === data.order_id &&
+              n.message === `Đơn hàng mới từ: ${data.customer_name}`,
+          )
+        )
+          return prev;
         return [data, ...prev];
       });
-      
-      window.dispatchEvent(new CustomEvent('refreshData'));
 
-      toast.success(`🛒 Có đơn hàng mới từ: ${data.customer_name} (${new Intl.NumberFormat('vi-VN').format(data.total_amount)} ₫)`, {
-        toastId: `order-created-${data.order_id}`
-      });
+      window.dispatchEvent(new CustomEvent("refreshData"));
+
+      toast.success(
+        `🛒 Có đơn hàng mới từ: ${data.customer_name} (${new Intl.NumberFormat("vi-VN").format(data.total_amount)} ₫)`,
+        {
+          toastId: `order-created-${data.order_id}`,
+        },
+      );
     });
 
-    channel.listen('OrderUpdated', (data) => {
-      setUnreadCount(prev => prev + 1);
-      setNotifications(prev => {
-        if (prev.some(n => n.order_id === data.order_id && n.message === data.message)) return prev;
+    channel.listen("OrderUpdated", (data) => {
+      setUnreadCount((prev) => prev + 1);
+      setNotifications((prev) => {
+        if (
+          prev.some(
+            (n) => n.order_id === data.order_id && n.message === data.message,
+          )
+        )
+          return prev;
         return [data, ...prev];
       });
-      
-      window.dispatchEvent(new CustomEvent('refreshData'));
+
+      window.dispatchEvent(new CustomEvent("refreshData"));
 
       toast.info(`📝 ${data.message}`, {
-        toastId: `order-updated-${data.order_id}`
+        toastId: `order-updated-${data.order_id}`,
       });
     });
 
-    channel.listen('ContactCreated', (data) => {
-      setUnreadCount(prev => prev + 1);
-      setNotifications(prev => {
-        if (prev.some(n => n.contact_id === data.contact_id && n.message === data.message)) return prev;
+    channel.listen("ContactCreated", (data) => {
+      setUnreadCount((prev) => prev + 1);
+      setNotifications((prev) => {
+        if (
+          prev.some(
+            (n) =>
+              n.contact_id === data.contact_id && n.message === data.message,
+          )
+        )
+          return prev;
         return [data, ...prev];
       });
-      
-      window.dispatchEvent(new CustomEvent('refreshData'));
+
+      window.dispatchEvent(new CustomEvent("refreshData"));
 
       toast.info(`✉️ ${data.message}`, {
-        toastId: `contact-created-${data.contact_id}`
+        toastId: `contact-created-${data.contact_id}`,
       });
     });
 
     return () => {
-      channel.stopListening('OrderCreated');
-      channel.stopListening('OrderUpdated');
-      channel.stopListening('ContactCreated');
-      echo.leaveChannel('admin-notifications');
+      channel.stopListening("OrderCreated");
+      channel.stopListening("OrderUpdated");
+      channel.stopListening("ContactCreated");
+      echo.leaveChannel("admin-notifications");
     };
   }, []);
 
@@ -78,46 +98,127 @@ export default function AdminLayout() {
 
   const confirmLogout = () => {
     logout(); // Xóa token + reset state qua AuthContext
-    window.location.href = '/login';
+    window.location.href = "/login";
   };
 
   const getRoleBadge = () => {
-    if (roles.includes('admin')) return { label: 'Admin', color: 'bg-red-500' };
-    
-    const activeRole = roles.find(r => r !== 'admin' && r !== 'user');
+    if (roles.includes("admin")) return { label: "Admin", color: "bg-red-500" };
+
+    const activeRole = roles.find((r) => r !== "admin" && r !== "user");
     if (activeRole) {
-      return { label: 'Nhân viên', color: 'bg-blue-500' };
+      return { label: "Nhân viên", color: "bg-blue-500" };
     }
 
-    return { label: 'User', color: 'bg-gray-500' };
+    return { label: "User", color: "bg-gray-500" };
   };
 
   const roleBadge = getRoleBadge();
 
   const navItems = [
-    { path: '/admin', label: 'Dashboard', icon: 'fas fa-chart-line', show: isAdmin || permissions?.includes('view-dashboard') },
-    { path: '/admin/categories', label: 'Quản lý Danh mục', icon: 'fas fa-tags', show: isAdmin || permissions?.includes('manage-categories') || permissions?.includes('view-categories') },
-    { path: '/admin/products', label: 'Quản lý Sản phẩm', icon: 'fas fa-box-open', show: isAdmin || permissions?.includes('manage-products') || permissions?.includes('view-products') },
-    { path: '/admin/promotions', label: 'Quản lý Khuyến mãi', icon: 'fas fa-gift', show: isAdmin || permissions?.includes('manage-promotions') },
-    { path: '/admin/orders', label: 'Quản lý Đơn hàng', icon: 'fas fa-shopping-cart', show: isAdmin || permissions?.includes('manage-orders') },
-    { path: '/admin/inventory-logs', label: 'Quản lý Xuất kho', icon: 'fas fa-file-export', show: isAdmin || permissions?.includes('manage-import') },
-    { path: '/admin/inventory', label: 'Quản lý Nhập kho', icon: 'fas fa-warehouse', show: isAdmin || permissions?.includes('manage-import') },
-    { path: '/admin/suppliers', label: 'Nhà Cung Cấp', icon: 'fas fa-truck', show: isAdmin || permissions?.includes('manage-import') },
-    { path: '/admin/contacts', label: 'Quản lý Liên hệ', icon: 'fas fa-envelope', show: isAdmin || permissions?.includes('manage-contacts') },
-    { path: '/admin/accounts', label: 'Quản lý Tài khoản', icon: 'fas fa-users', show: isAdmin || permissions?.includes('manage-users') || permissions?.includes('view-users') },
-    { path: '/admin/roles', label: 'Quản lý Vai trò', icon: 'fas fa-user-shield', show: isAdmin || permissions?.includes('manage-roles') || permissions?.includes('manage-users') },
-    { path: '/admin/banners', label: 'Quản lý Banner', icon: 'fas fa-images', show: isAdmin || permissions?.includes('manage-settings') },
-    { path: '/admin/settings', label: 'Cấu hình Website', icon: 'fas fa-cogs', show: isAdmin || permissions?.includes('manage-settings') },
-  ].filter(item => item.show);
+    {
+      path: "/admin",
+      label: "Dashboard",
+      icon: "fas fa-chart-line",
+      show: isAdmin || permissions?.includes("view-dashboard"),
+    },
+    {
+      path: "/admin/categories",
+      label: "Quản lý Danh mục",
+      icon: "fas fa-tags",
+      show:
+        isAdmin ||
+        permissions?.includes("manage-categories") ||
+        permissions?.includes("view-categories"),
+    },
+    {
+      path: "/admin/products",
+      label: "Quản lý Sản phẩm",
+      icon: "fas fa-box-open",
+      show:
+        isAdmin ||
+        permissions?.includes("manage-products") ||
+        permissions?.includes("view-products"),
+    },
+    {
+      path: "/admin/promotions",
+      label: "Quản lý Khuyến mãi",
+      icon: "fas fa-gift",
+      show: isAdmin || permissions?.includes("manage-promotions"),
+    },
+    {
+      path: "/admin/orders",
+      label: "Quản lý Đơn hàng",
+      icon: "fas fa-shopping-cart",
+      show: isAdmin || permissions?.includes("manage-orders"),
+    },
+    {
+      path: "/admin/inventory-logs",
+      label: "Quản lý Xuất kho",
+      icon: "fas fa-file-export",
+      show: isAdmin || permissions?.includes("manage-import"),
+    },
+    {
+      path: "/admin/inventory",
+      label: "Quản lý Nhập kho",
+      icon: "fas fa-warehouse",
+      show: isAdmin || permissions?.includes("manage-import"),
+    },
+    {
+      path: "/admin/suppliers",
+      label: "Nhà Cung Cấp",
+      icon: "fas fa-truck",
+      show: isAdmin || permissions?.includes("manage-import"),
+    },
+    {
+      path: "/admin/contacts",
+      label: "Quản lý Liên hệ",
+      icon: "fas fa-envelope",
+      show: isAdmin || permissions?.includes("manage-contacts"),
+    },
+    {
+      path: "/admin/accounts",
+      label: "Quản lý Tài khoản",
+      icon: "fas fa-users",
+      show:
+        isAdmin ||
+        permissions?.includes("manage-users") ||
+        permissions?.includes("view-users"),
+    },
+    {
+      path: "/admin/roles",
+      label: "Quản lý Vai trò",
+      icon: "fas fa-user-shield",
+      show:
+        isAdmin ||
+        permissions?.includes("manage-roles") ||
+        permissions?.includes("manage-users"),
+    },
+    {
+      path: "/admin/banners",
+      label: "Quản lý Banner",
+      icon: "fas fa-images",
+      show: isAdmin || permissions?.includes("manage-settings"),
+    },
+    {
+      path: "/admin/settings",
+      label: "Cấu hình Website",
+      icon: "fas fa-cogs",
+      show: isAdmin || permissions?.includes("manage-settings"),
+    },
+  ].filter((item) => item.show);
 
   useEffect(() => {
-    if (location.pathname === '/admin' && !isAdmin && !permissions?.includes('view-dashboard')) {
-      const firstAvailable = navItems.find(item => item.path !== '/admin');
+    if (
+      location.pathname === "/admin" &&
+      !isAdmin &&
+      !permissions?.includes("view-dashboard")
+    ) {
+      const firstAvailable = navItems.find((item) => item.path !== "/admin");
       if (firstAvailable) {
         navigate(firstAvailable.path, { replace: true });
       }
     }
-  }, [location.pathname, isAdmin, permissions, navigate]); // navItems omitted to prevent infinite loop
+  }, [location.pathname, isAdmin, permissions, navigate]);
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans">
@@ -125,21 +226,26 @@ export default function AdminLayout() {
       <aside className="w-64 bg-dark text-white flex flex-col transition-all duration-300">
         <div className="p-6 border-b border-gray-700 flex items-center gap-3">
           <i className="fas fa-leaf text-primary text-2xl"></i>
-          <span className="text-xl font-bold tracking-wider">CK TEA <span className="text-primary text-sm">ADMIN</span></span>
+          <span className="text-xl font-bold tracking-wider">
+            CK TEA <span className="text-primary text-sm">ADMIN</span>
+          </span>
         </div>
-        
+
         <nav className="flex-1 overflow-y-auto py-4">
           <ul className="space-y-1 px-3">
             {navItems.map((item) => {
-              const isActive = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path + '/'));
+              const isActive =
+                location.pathname === item.path ||
+                (item.path !== "/admin" &&
+                  location.pathname.startsWith(item.path + "/"));
               return (
                 <li key={item.path}>
-                  <Link 
+                  <Link
                     to={item.path}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive 
-                        ? 'bg-primary text-white shadow-md font-semibold' 
-                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                      isActive
+                        ? "bg-primary text-white shadow-md font-semibold"
+                        : "text-gray-300 hover:bg-gray-800 hover:text-white"
                     }`}
                   >
                     <i className={`${item.icon} w-5 text-center`}></i>
@@ -152,13 +258,14 @@ export default function AdminLayout() {
         </nav>
 
         <div className="p-4 border-t border-gray-700">
-          <button 
-            onClick={() => navigate('/')}
+          <button
+            onClick={() => navigate("/")}
             className="w-full flex items-center gap-3 px-4 py-2 text-gray-300 hover:text-white transition-colors text-sm mb-2"
           >
-            <i className="fas fa-external-link-alt w-5 text-center"></i> Về trang Cửa hàng
+            <i className="fas fa-external-link-alt w-5 text-center"></i> Về
+            trang Cửa hàng
           </button>
-          <button 
+          <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-colors text-sm font-semibold"
           >
@@ -172,11 +279,16 @@ export default function AdminLayout() {
         <ToastContainer />
         <header className="bg-white h-16 shadow-sm border-b border-gray-200 flex items-center justify-between px-8 shrink-0 z-10">
           <h1 className="text-xl font-bold text-gray-800">
-            {navItems.find(i => location.pathname === i.path || (i.path !== '/admin' && location.pathname.startsWith(i.path + '/')))?.label || 'Admin Panel'}
+            {navItems.find(
+              (i) =>
+                location.pathname === i.path ||
+                (i.path !== "/admin" &&
+                  location.pathname.startsWith(i.path + "/")),
+            )?.label || "Admin Panel"}
           </h1>
-          
+
           <div className="flex items-center gap-4 relative">
-            <button 
+            <button
               className="text-gray-500 hover:text-primary transition-colors relative"
               onClick={() => {
                 setIsNotificationOpen(!isNotificationOpen);
@@ -195,8 +307,15 @@ export default function AdminLayout() {
             {isNotificationOpen && (
               <div className="absolute top-10 right-10 w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden">
                 <div className="bg-gray-50 px-4 py-3 border-b border-gray-100 flex justify-between items-center">
-                  <h3 className="text-sm font-bold text-gray-800">Thông báo mới</h3>
-                  <button onClick={() => setNotifications([])} className="text-xs text-primary hover:underline">Xóa tất cả</button>
+                  <h3 className="text-sm font-bold text-gray-800">
+                    Thông báo mới
+                  </h3>
+                  <button
+                    onClick={() => setNotifications([])}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Xóa tất cả
+                  </button>
                 </div>
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.length === 0 ? (
@@ -205,13 +324,25 @@ export default function AdminLayout() {
                     </div>
                   ) : (
                     notifications.map((notif, idx) => (
-                      <div key={idx} className="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition cursor-pointer">
-                        <p className="text-sm font-semibold text-gray-800 mb-1">{notif.message}</p>
+                      <div
+                        key={idx}
+                        className="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition cursor-pointer"
+                      >
+                        <p className="text-sm font-semibold text-gray-800 mb-1">
+                          {notif.message}
+                        </p>
                         {notif.customer_name && (
-                          <p className="text-xs text-gray-600 mb-1">Khách: {notif.customer_name}</p>
+                          <p className="text-xs text-gray-600 mb-1">
+                            Khách: {notif.customer_name}
+                          </p>
                         )}
                         {notif.total_amount !== undefined && (
-                          <p className="text-xs text-red-500 font-bold">{new Intl.NumberFormat('vi-VN').format(notif.total_amount)} ₫</p>
+                          <p className="text-xs text-red-500 font-bold">
+                            {new Intl.NumberFormat("vi-VN").format(
+                              notif.total_amount,
+                            )}{" "}
+                            ₫
+                          </p>
                         )}
                       </div>
                     ))
@@ -221,10 +352,17 @@ export default function AdminLayout() {
             )}
 
             {/* User info + Role badge */}
-            <button onClick={() => setIsProfileModalOpen(true)} className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition cursor-pointer border-none outline-none">
+            <button
+              onClick={() => setIsProfileModalOpen(true)}
+              className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition cursor-pointer border-none outline-none"
+            >
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-gray-800 leading-tight">{user?.name || 'Admin'}</p>
-                <span className={`inline-block px-2 py-0.5 text-[10px] font-bold text-white rounded-full ${roleBadge.color} mt-0.5`}>
+                <p className="text-sm font-semibold text-gray-800 leading-tight">
+                  {user?.name || "Admin"}
+                </p>
+                <span
+                  className={`inline-block px-2 py-0.5 text-[10px] font-bold text-white rounded-full ${roleBadge.color} mt-0.5`}
+                >
                   {roleBadge.label}
                 </span>
               </div>
@@ -247,16 +385,20 @@ export default function AdminLayout() {
       {isLogoutModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in px-4">
           <div className="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Xác nhận đăng xuất</h3>
-            <p className="text-gray-600 mb-6">Bạn có chắc chắn muốn đăng xuất khỏi trang Quản trị không?</p>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Xác nhận đăng xuất
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Bạn có chắc chắn muốn đăng xuất khỏi trang Quản trị không?
+            </p>
             <div className="flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setIsLogoutModalOpen(false)}
                 className="px-4 py-2 font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition"
               >
                 Hủy
               </button>
-              <button 
+              <button
                 onClick={confirmLogout}
                 className="px-4 py-2 font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition"
               >
@@ -268,9 +410,9 @@ export default function AdminLayout() {
       )}
 
       {/* MODAL THÔNG TIN TÀI KHOẢN */}
-      <AdminProfileModal 
-        isOpen={isProfileModalOpen} 
-        onClose={() => setIsProfileModalOpen(false)} 
+      <AdminProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
       />
     </div>
   );

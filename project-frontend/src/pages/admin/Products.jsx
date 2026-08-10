@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '../../contexts/AuthContext';
 import Pagination from '../../components/admin/Pagination';
 import ConfirmModal from '../../components/admin/ConfirmModal';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -30,6 +32,84 @@ export default function Products() {
 
   const { canManageProducts } = useAuth();
   const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
+  const quillRefDesc = useRef(null);
+  const quillRefIngr = useRef(null);
+  const quillRefUsage = useRef(null);
+
+  const imageHandler = async (ref) => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (file) {
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+          toast.info('Đang tải ảnh lên...', { autoClose: 2000 });
+          const token = localStorage.getItem('token');
+          const res = await fetch(`${API_URL}/api/admin/upload-image`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+          });
+          
+          if (!res.ok) throw new Error('Upload failed');
+          const data = await res.json();
+          
+          const quill = ref.current.getEditor();
+          const range = quill.getSelection(true);
+          quill.insertEmbed(range.index, 'image', data.url);
+          quill.setSelection(range.index + 1);
+        } catch (error) {
+          console.error('Upload image error:', error);
+          toast.error('Lỗi khi tải ảnh lên!');
+        }
+      }
+    };
+  };
+
+  const modulesDesc = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{'list': 'ordered'}, {'list': 'bullet'}],
+        ['link', 'image'],
+        ['clean']
+      ],
+      handlers: { image: () => imageHandler(quillRefDesc) }
+    }
+  }), []);
+
+  const modulesIngr = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{'list': 'ordered'}, {'list': 'bullet'}],
+        ['link', 'image'],
+        ['clean']
+      ],
+      handlers: { image: () => imageHandler(quillRefIngr) }
+    }
+  }), []);
+
+  const modulesUsage = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{'list': 'ordered'}, {'list': 'bullet'}],
+        ['link', 'image'],
+        ['clean']
+      ],
+      handlers: { image: () => imageHandler(quillRefUsage) }
+    }
+  }), []);
 
   const defaultVariant = { sku: '', weight: '', price: '' };
 
@@ -475,12 +555,13 @@ export default function Products() {
             {/* Drawer Body */}
             <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30 custom-scrollbar">
               <form id="productForm" onSubmit={handleSubmit} className="space-y-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Cột trái: Thông tin cơ bản */}
-                  <div className="space-y-5 bg-white p-6 rounded-xl border border-gray-100 shadow-sm h-fit">
-                    <h4 className="font-bold text-gray-800 border-b border-gray-100 pb-3 flex items-center gap-2">
+
+                  {/* Khối 1: Thông tin cơ bản */}
+                  <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                    <h4 className="font-bold text-gray-800 border-b border-gray-100 pb-3 flex items-center gap-2 mb-5">
                       <i className="fas fa-info-circle text-primary"></i> Thông tin cơ bản
                     </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-1.5">Tên sản phẩm <span className="text-red-500">*</span></label>
@@ -518,45 +599,38 @@ export default function Products() {
                       </div>
                     </div>
 
-                    <div className="pt-2">
-                      <label className="flex items-center gap-3 cursor-pointer p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-white transition-colors">
-                        <input type="checkbox" className="w-5 h-5 text-primary rounded focus:ring-primary" checked={formData.is_active} 
-                          onChange={e => setFormData({...formData, is_active: e.target.checked})} 
-                        />
-                        <span className="font-bold text-sm text-gray-700">Trạng thái hoạt động (Hiển thị)</span>
-                      </label>
+                      <div className="pt-2 md:col-span-2">
+                        <label className="flex items-center gap-3 cursor-pointer p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-white transition-colors w-fit">
+                          <input type="checkbox" className="w-5 h-5 text-primary rounded focus:ring-primary" checked={formData.is_active} 
+                            onChange={e => setFormData({...formData, is_active: e.target.checked})} 
+                          />
+                          <span className="font-bold text-sm text-gray-700">Trạng thái hoạt động (Hiển thị)</span>
+                        </label>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Cột phải: Thông tin bổ sung & Biến thể */}
-                  <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
-                      <h4 className="font-bold text-gray-800 border-b border-gray-100 pb-3 flex items-center gap-2">
-                        <i className="fas fa-align-left text-primary"></i> Chi tiết nội dung
-                      </h4>
+                  {/* Khối 2: Chi tiết nội dung */}
+                  <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                    <h4 className="font-bold text-gray-800 border-b border-gray-100 pb-3 flex items-center gap-2">
+                      <i className="fas fa-align-left text-primary"></i> Chi tiết nội dung
+                    </h4>
                       <div>
                         <label className="block text-sm font-bold text-gray-700 mb-1.5">Mô tả sản phẩm</label>
-                        <textarea className="w-full border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors bg-gray-50 focus:bg-white text-sm h-24 custom-scrollbar" 
-                          value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Mô tả chi tiết..."
-                        />
+                        <ReactQuill ref={quillRefDesc} modules={modulesDesc} theme="snow" value={formData.description || ''} onChange={(content, delta, source) => { if (source === 'user') setFormData(prev => ({...prev, description: content})) }} placeholder="Mô tả chi tiết..." className="bg-white" />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-gray-700 mb-1.5">Thành phần</label>
-                        <textarea className="w-full border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors bg-gray-50 focus:bg-white text-sm h-20 custom-scrollbar" 
-                          value={formData.ingredient} onChange={e => setFormData({...formData, ingredient: e.target.value})} placeholder="Mỗi thành phần 1 dòng..."
-                        />
+                        <ReactQuill ref={quillRefIngr} modules={modulesIngr} theme="snow" value={formData.ingredient || ''} onChange={(content, delta, source) => { if (source === 'user') setFormData(prev => ({...prev, ingredient: content})) }} placeholder="Thành phần..." className="bg-white" />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-gray-700 mb-1.5">Cách dùng / Pha chế</label>
-                        <textarea className="w-full border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors bg-gray-50 focus:bg-white text-sm h-20 custom-scrollbar" 
-                          value={formData.usage_instruction} onChange={e => setFormData({...formData, usage_instruction: e.target.value})} placeholder="Mỗi bước 1 dòng..."
-                        />
+                        <ReactQuill ref={quillRefUsage} modules={modulesUsage} theme="snow" value={formData.usage_instruction || ''} onChange={(content, delta, source) => { if (source === 'user') setFormData(prev => ({...prev, usage_instruction: content})) }} placeholder="Cách dùng / Pha chế..." className="bg-white" />
                       </div>
                     </div>
 
-                  </div>
-                </div>
 
+                {/* Khối 3: Các biến thể */}
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                   <div className="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
                     <h4 className="font-bold text-gray-800 flex items-center gap-2">

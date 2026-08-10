@@ -113,11 +113,11 @@ class VNPayService
         $vnp_RequestId = time() . rand(100, 999);
         $vnp_Version = '2.1.0';
         $vnp_Command = 'refund';
-        $vnp_TransactionType = '02'; // 02: Hoàn trả toàn phần
+        $vnp_TransactionType = '02'; //Hoàn trả toàn phần
         $vnp_TxnRef = $orderCode;
         $vnp_Amount = $amount * 100;
         $vnp_OrderInfo = "Hoan tien don hang " . $orderCode;
-        $vnp_TransactionNo = "0"; // Bỏ qua nếu không lưu transaction_no
+        $vnp_TransactionNo = "0"; //Bỏ qua nếu không lưu transaction_no
         $vnp_TransactionDate = date('YmdHis', strtotime($transDate));
         $vnp_CreateBy = $user;
         $vnp_CreateDate = date('YmdHis');

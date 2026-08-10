@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class InventoryLog extends Model
 {
     protected $guarded = [];
+    public const UPDATED_AT = null;
 
     public function batch()
     {

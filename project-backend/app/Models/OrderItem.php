@@ -22,4 +22,9 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Batch::class, 'batch_id');
     }
+
+    public function promotion()
+    {
+        return $this->belongsTo(Promotion::class, 'promotion_id');
+    }
 }

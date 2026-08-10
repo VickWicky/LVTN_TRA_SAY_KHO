@@ -57,6 +57,10 @@ class PromotionService
                 }
             }
 
+            if ($isApplicable && $promo->discount_type === 'fixed' && $promo->discount_value >= $variant->price) {
+                $isApplicable = false;
+            }
+
             if ($isApplicable) {
                 $price = $promo->discount_type === 'percent' 
                     ? $variant->price * (1 - $promo->discount_value / 100)

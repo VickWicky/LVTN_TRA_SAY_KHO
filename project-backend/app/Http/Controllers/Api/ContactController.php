@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Validator;
 
 class ContactController extends Controller
 {
-    // API cho frontend (trang chủ) gửi liên hệ
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -34,7 +33,6 @@ class ContactController extends Controller
         ], 201);
     }
 
-    // API cho admin lấy danh sách
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -49,7 +47,6 @@ class ContactController extends Controller
         return response()->json($query->paginate(10));
     }
 
-    // API cho admin cập nhật trạng thái (new, read, resolved)
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
@@ -66,7 +63,6 @@ class ContactController extends Controller
         ]);
     }
 
-    // API cho admin xóa liên hệ
     public function destroy($id)
     {
         $contact = Contact::findOrFail($id);

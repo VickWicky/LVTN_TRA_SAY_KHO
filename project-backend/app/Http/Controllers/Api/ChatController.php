@@ -26,7 +26,6 @@ class ChatController extends Controller
         ]);
 
         $message = $request->message;
-        // Fix for PHP built-in server on Windows corrupting UTF-8 POST data
         if (php_sapi_name() === 'cli-server' && strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             if (!mb_check_encoding($message, 'UTF-8') || preg_match('/[\x80-\xFF]/', $message)) {
                 $decoded = utf8_decode($message);
@@ -41,20 +40,17 @@ class ChatController extends Controller
         $userId = auth('sanctum')->id();
         $sessionToken = $request->input('session_token');
 
-        // Create or find session
         $session = null;
         if ($sessionToken) {
             $session = ChatSession::firstOrCreate(
                 ['session_token' => $sessionToken]
             );
-            
-            // Link guest session to user after login
+
             if ($userId && !$session->user_id) {
                 $session->user_id = $userId;
                 $session->save();
             }
         } else {
-            // Fallback if no token provided
             if ($userId) {
                 $session = ChatSession::where('user_id', $userId)->latest()->first();
                 if (!$session) {
@@ -70,7 +66,6 @@ class ChatController extends Controller
             }
         }
 
-        // Load previous messages (limit to last 20 for context window)
         $previousMessages = ChatMessage::where('chat_session_id', $session->id)
             ->orderBy('id', 'desc')
             ->take(20)
@@ -78,7 +73,6 @@ class ChatController extends Controller
             ->reverse();
 
         $messages = [];
-        // System prompt is now handled directly in ChatbotService payload
 
         foreach ($previousMessages as $msg) {
             if ($msg->role === 'user' || $msg->role === 'model' || $msg->role === 'assistant') {
@@ -93,7 +87,6 @@ class ChatController extends Controller
             }
         }
 
-        // Add current user message
         $messages[] = [
             'role' => 'user',
             'parts' => [
@@ -101,17 +94,14 @@ class ChatController extends Controller
             ]
         ];
 
-        // Save user message to DB
         ChatMessage::create([
             'chat_session_id' => $session->id,
             'role' => 'user',
             'content' => $message
         ]);
 
-        // Get AI Response (will handle tool calling recursively)
         $aiResponse = $this->chatbotService->handleUserMessage($messages, $userId, $session->session_token);
 
-        // Save assistant final message to DB
         ChatMessage::create([
             'chat_session_id' => $session->id,
             'role' => 'assistant',

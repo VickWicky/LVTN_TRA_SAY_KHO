@@ -16,7 +16,6 @@ class OrderController extends Controller
 {
     public function store(Request $request)
     {
-        // 1. Validate request
         $validated = $request->validate([
             'shipping_name' => 'required|string|max:255',
             'shipping_phone' => 'required|string|max:20',
@@ -64,16 +63,15 @@ class OrderController extends Controller
                     ->where('expiry_date', '>', now())
                     ->where('stock', '>', 0)
                     ->orderBy('expiry_date', 'asc')
-                    ->lockForUpdate() // Khóa dòng để tránh xung đột concurrent
+                    ->lockForUpdate()
                     ->get();
 
                 foreach ($batches as $batch) {
                     if ($quantityNeeded <= 0) break;
 
                     $takeQuantity = min($batch->stock, $quantityNeeded);
-                    if ($takeQuantity <= 0) continue; // Skip if stock is zero due to concurrency
-                    
-                    // Trừ stock trong batch
+                    if ($takeQuantity <= 0) continue;
+
                     $batch->stock -= $takeQuantity;
                     $batch->save();
 
@@ -81,7 +79,7 @@ class OrderController extends Controller
                     $orderItemsData[] = [
                         'variant_id' => $variant->id,
                         'batch_id' => $batch->id,
-                        'promotion_id' => $promotionId, // Lưu id khuyến mãi
+                        'promotion_id' => $promotionId, 
                         'quantity' => $takeQuantity,
                         'price' => $price,
                         'created_at' => now(),
@@ -125,6 +123,7 @@ class OrderController extends Controller
                     'order_id' => $order->id,
                     'variant_id' => $itemData['variant_id'],
                     'batch_id' => $itemData['batch_id'],
+                    'promotion_id' => $itemData['promotion_id'] ?? null,
                     'quantity' => $itemData['quantity'],
                     'price' => $itemData['price'],
                 ]);
@@ -132,7 +131,6 @@ class OrderController extends Controller
 
             DB::commit();
 
-            // Phát event báo có đơn hàng mới qua Pusher/Reverb
             event(new OrderCreated($order));
 
             // Gửi email xác nhận nếu là user đã đăng nhập
@@ -140,7 +138,6 @@ class OrderController extends Controller
                 $user = \App\Models\User::find($user_id);
                 if ($user && $user->email) {
                     try {
-                        // Load relations để hiển thị tên sản phẩm trong email
                         $orderForEmail = $order->load('items.variant.product');
                         \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OrderConfirmationMail($orderForEmail));
                     } catch (\Exception $e) {
@@ -208,8 +205,6 @@ class OrderController extends Controller
                         }
                     }
                 } else {
-                    // Thất bại (chưa đủ 24h, v.v..): KHÔNG NÉM LỖI
-                    // Vẫn cho phép hủy đơn, nhưng payment_status giữ nguyên 'paid'
                     \Illuminate\Support\Facades\Log::warning("Không thể hoàn tiền ngay lúc Hủy đơn VNPAY: " . $refundResult['message']);
                     
                     // Gửi mail báo chờ hoàn tiền

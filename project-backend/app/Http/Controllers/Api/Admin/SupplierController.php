@@ -66,8 +66,6 @@ class SupplierController extends Controller
     public function destroy($id)
     {
         $supplier = Supplier::findOrFail($id);
-        
-        // Kiểm tra xem nhà cung cấp đã có phiếu nhập nào chưa
         if ($supplier->importReceipts()->exists()) {
             return response()->json([
                 'message' => 'Không thể xóa nhà cung cấp đã có phiếu nhập.'

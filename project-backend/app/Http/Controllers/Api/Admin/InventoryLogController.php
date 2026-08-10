@@ -11,14 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class InventoryLogController extends Controller
 {
-    /**
-     * Get a list of inventory export logs with filtering and searching
-     */
     public function index(Request $request)
     {
         $query = InventoryLog::with(['user', 'batch.variant.product'])->orderBy('created_at', 'desc');
 
-        // Filter by Date Range
         if ($request->has('start_date') && $request->start_date) {
             $query->whereDate('created_at', '>=', $request->start_date);
         }
@@ -26,12 +22,10 @@ class InventoryLogController extends Controller
             $query->whereDate('created_at', '<=', $request->end_date);
         }
 
-        // Filter by reason
         if ($request->has('reason') && $request->reason) {
             $query->where('reason', $request->reason);
         }
 
-        // Search by Product name or Batch code
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->whereHas('batch', function($q) use ($search) {
@@ -46,9 +40,6 @@ class InventoryLogController extends Controller
         return response()->json($logs);
     }
 
-    /**
-     * Store a new inventory export log (Xuất kho khác)
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -76,7 +67,6 @@ class InventoryLogController extends Controller
                 $user_id = $user ? $user->id : 1;
             }
 
-            // Determine final reason string
             $finalReason = $validated['reason'];
             if ($finalReason === 'Khác' && !empty($validated['custom_reason'])) {
                 $finalReason = $validated['custom_reason'];
@@ -91,7 +81,6 @@ class InventoryLogController extends Controller
 
             DB::commit();
             
-            // Load relation for immediate response
             $log->load(['user', 'batch.variant.product']);
             
             return response()->json([

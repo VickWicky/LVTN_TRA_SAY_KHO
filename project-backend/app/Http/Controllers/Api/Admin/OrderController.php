@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    /**
-     * Lấy danh sách tất cả đơn hàng
-     */
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -36,9 +33,6 @@ class OrderController extends Controller
         return response()->json($query->paginate(10));
     }
 
-    /**
-     * Xem chi tiết một đơn hàng
-     */
     public function show($id)
     {
         $order = Order::with(['user', 'items.variant.product', 'items.batch'])
@@ -47,9 +41,6 @@ class OrderController extends Controller
         return response()->json($order);
     }
 
-    /**
-     * Cập nhật trạng thái đơn hàng
-     */
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
@@ -60,7 +51,6 @@ class OrderController extends Controller
         $oldStatus = $order->order_status;
         $newStatus = $request->input('status');
 
-        // Nếu trạng thái mới giống trạng thái cũ thì không cần làm gì
         if ($oldStatus === $newStatus) {
             return response()->json([
                 'message' => 'Trạng thái không thay đổi.',
@@ -68,7 +58,6 @@ class OrderController extends Controller
             ]);
         }
 
-        // Logic kiểm tra không được nhảy bước
         $validTransitions = [
             'pending' => ['processing', 'cancelled'],
             'processing' => ['shipping', 'cancelled'],
@@ -89,9 +78,7 @@ class OrderController extends Controller
 
             $order->order_status = $newStatus;
 
-            // Nếu trạng thái mới là 'cancelled' hoặc 'returned' (Hoàn trả/Bom hàng), tiến hành hoàn trả tồn kho và hoàn tiền VNPay
             if (in_array($newStatus, ['cancelled', 'returned'])) {
-                // VNPay Refund
                 if ($order->payment_method === 'vnpay' && $order->payment_status === 'paid') {
                     $vnPayService = app(\App\Services\VNPayService::class);
                     $refundResult = $vnPayService->refund($order->order_code, $order->final_amount, $order->created_at, request()->user()->name ?? 'Admin');
@@ -105,7 +92,6 @@ class OrderController extends Controller
                             } catch (\Exception $e) {}
                         }
                     } else {
-                        // Thất bại (chưa đủ 24h): KHÔNG NÉM LỖI
                         \Illuminate\Support\Facades\Log::warning("Admin Hủy đơn: Không thể hoàn tiền ngay VNPAY: " . $refundResult['message']);
                         if ($order->user && $order->user->email) {
                             try {
@@ -146,11 +132,6 @@ class OrderController extends Controller
         }
     }
 
-
-
-    /**
-     * Cập nhật trạng thái thanh toán
-     */
     public function updatePaymentStatus(Request $request, $id)
     {
         $request->validate([
@@ -208,9 +189,6 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * Nút thực hiện hoàn tiền VNPAY thủ công cho đơn đã hủy nhưng chưa hoàn tiền
-     */
     public function retryRefund(Request $request, $id)
     {
         $order = Order::with('user')->findOrFail($id);

@@ -10,7 +10,6 @@ class SettingController extends Controller
 {
     public function index()
     {
-        // Trả về tất cả settings dưới dạng object (key => value)
         $settings = Setting::all();
         $formatted = [];
         foreach ($settings as $setting) {
@@ -22,7 +21,6 @@ class SettingController extends Controller
 
     public function update(Request $request)
     {
-        // Cập nhật hàng loạt các setting
         $data = $request->all();
 
         foreach ($data as $key => $value) {

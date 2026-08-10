@@ -59,11 +59,9 @@ class CloudinaryService
         
         $parts = explode('/upload/', $path);
         if (count($parts) < 2) return false;
-        
-        // Remove version number (e.g. v1612440939/)
+
         $filePath = preg_replace('/^v\d+\//', '', $parts[1]);
-        
-        // Remove file extension
+
         $pathInfo = pathinfo($filePath);
         $dirname = $pathInfo['dirname'] == '.' ? '' : $pathInfo['dirname'] . '/';
         $publicId = $dirname . $pathInfo['filename'];

@@ -86,6 +86,7 @@ Route::prefix('admin')
         Route::post('/products', [ProductController::class, 'store'])->middleware('permission:manage-products');
         Route::put('/products/{id}', [ProductController::class, 'update'])->middleware('permission:manage-products');
         Route::delete('/products/{id}', [ProductController::class, 'destroy'])->middleware('permission:manage-products');
+        Route::post('/upload-image', [ProductController::class, 'uploadImage'])->middleware('permission:manage-products');
         
         Route::get('/orders', [AdminOrderController::class, 'index'])->middleware('permission:manage-orders');
         Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->middleware('permission:manage-orders');

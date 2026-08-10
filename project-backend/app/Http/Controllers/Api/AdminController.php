@@ -12,7 +12,6 @@ use Carbon\Carbon;
 
 class AdminController extends Controller
 {
-    // Dashboard Stats
     public function dashboardStats(Request $request)
     {
         $range = $request->query('range', '7days'); // 'today', '7days', 'thisMonth', 'thisYear', 'all'
@@ -47,18 +46,16 @@ class AdminController extends Controller
             case 'custom':
                 $startDate = $request->query('start_date') ? Carbon::parse($request->query('start_date'))->startOfDay() : $now->copy()->startOfDay();
                 $endDate = $request->query('end_date') ? Carbon::parse($request->query('end_date'))->endOfDay() : $now->copy()->endOfDay();
-                // Disable trend comparison for custom range by setting prev period to same as current so diff is 0
                 $prevStartDate = $startDate;
                 $prevEndDate = $startDate;
                 break;
-            default: // all
+            default:
                 $startDate = Carbon::create(2000, 1, 1);
                 $prevStartDate = $startDate;
                 $prevEndDate = $startDate;
                 break;
         }
 
-        // Current period stats
         $queryRevenue = Order::where(function($query) {
             $query->where('payment_status', 'paid')
                   ->orWhere('order_status', 'completed');
@@ -78,8 +75,7 @@ class AdminController extends Controller
         $totalOrders = $queryOrders->count();
         $totalProducts = $queryProducts->count();
         $totalUsers = $queryUsers->count();
-        
-        // Previous period stats for trends
+
         $prevRevenue = 0; $prevOrders = 0; $prevProducts = 0; $prevUsers = 0;
         if ($range !== 'all') {
             $prevRevenue = Order::where(function($query) {
@@ -113,7 +109,6 @@ class AdminController extends Controller
         if ($range !== 'all') $recentOrdersQuery->whereBetween('created_at', [$startDate, $endDate]);
         $recentOrders = $recentOrdersQuery->get();
 
-        // Revenue by day (always last 7 days or based on range if smaller, for area chart)
         $areaStartDate = $range === 'today' ? $now->copy()->subDays(6)->startOfDay() : $startDate;
         $areaEndDate = $range === 'all' ? $now->copy()->endOfDay() : $endDate;
         $revenueByDayRecords = Order::select(
@@ -153,12 +148,10 @@ class AdminController extends Controller
             }
         }
 
-        // Orders by status
         $statusQuery = Order::select('order_status as name', DB::raw('COUNT(*) as value'));
         if ($range !== 'all') $statusQuery->whereBetween('created_at', [$startDate, $endDate]);
         $ordersByStatus = $statusQuery->groupBy('order_status')->get();
 
-        // Top 5 products
         $topProductsQuery = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('product_variants', 'order_items.variant_id', '=', 'product_variants.id')
@@ -175,7 +168,6 @@ class AdminController extends Controller
         
         $topProducts = $topProductsQuery->get();
 
-        // Revenue by month (for Bar Chart)
         $revenueByMonth = Order::select(
                 DB::raw('MONTH(created_at) as m'),
                 DB::raw('SUM(final_amount) as revenue')

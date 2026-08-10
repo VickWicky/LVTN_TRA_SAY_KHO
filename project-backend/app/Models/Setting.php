@@ -8,7 +8,6 @@ class Setting extends Model
 {
     protected $guarded = [];
 
-    // Lấy một giá trị cấu hình theo key
     public static function get($key, $default = null)
     {
         $setting = self::where('key', $key)->first();

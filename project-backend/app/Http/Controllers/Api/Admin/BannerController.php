@@ -75,14 +75,12 @@ class BannerController extends Controller
         if ($request->hasFile('image')) {
             $cloudinaryService = app(\App\Services\CloudinaryService::class);
 
-            // Delete old local image
             if ($imagePath && strpos($imagePath, '/storage/') === 0) {
                 $oldPath = str_replace('/storage/', '', $imagePath);
                 if (Storage::disk('public')->exists($oldPath)) {
                     Storage::disk('public')->delete($oldPath);
                 }
             } elseif ($imagePath && strpos($imagePath, 'res.cloudinary.com') !== false) {
-                // Delete old Cloudinary image to save space
                 $cloudinaryService->deleteImage($imagePath);
             }
 

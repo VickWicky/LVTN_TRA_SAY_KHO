@@ -52,7 +52,6 @@ class PaymentController extends Controller
         $result = $this->vnPayService->verifyPayment($inputData);
 
         if ($result['success']) {
-            // Thanh toán thành công, cập nhật trạng thái đơn hàng
             $order = Order::where('order_code', $result['orderCode'])->first();
             if ($order && $order->payment_status !== 'paid') {
                 $order->payment_status = 'paid';

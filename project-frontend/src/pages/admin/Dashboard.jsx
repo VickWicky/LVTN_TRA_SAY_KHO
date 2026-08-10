@@ -1,20 +1,9 @@
 import { useState, useEffect } from "react";
-import {
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
+
 import * as XLSX from "xlsx";
+import RevenueAreaChart from "../../components/admin/charts/RevenueAreaChart";
+import RevenueBarChart from "../../components/admin/charts/RevenueBarChart";
+import OrderStatusPieChart from "../../components/admin/charts/OrderStatusPieChart";
 import { useAuth } from "../../contexts/AuthContext";
 import { Navigate, Link } from "react-router-dom";
 
@@ -51,7 +40,6 @@ export default function Dashboard() {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      // Thêm tham số timeRange vào API, ví dụ: ?range=7days
       let url = `${API_URL}/api/admin/dashboard-stats?range=${timeRange}`;
       if (timeRange === "custom") {
         if (!startDate || !endDate) {
@@ -68,7 +56,6 @@ export default function Dashboard() {
       });
       if (res.ok) {
         const data = await res.json();
-        // Fallback for trends and new charts if backend not yet updated
         const filledData = {
           ...data,
           trends: data.trends || {
@@ -89,7 +76,6 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    // Only auto-fetch if not custom, or if custom has both dates
     if (
       timeRange !== "custom" ||
       (timeRange === "custom" && startDate && endDate)
@@ -110,7 +96,7 @@ export default function Dashboard() {
     return () => {
       window.removeEventListener("refreshData", handleRefresh);
     };
-  }, [timeRange]); // We intentionally do not auto-fetch on every keystroke of startDate/endDate. We will use a button.
+  }, [timeRange]);
 
   if (isLoading && !stats.total_revenue) {
     return (
@@ -120,17 +106,16 @@ export default function Dashboard() {
     );
   }
 
-  // Colors for Pie Chart
-  const COLORS = [
-    "#0088FE",
-    "#00C49F",
-    "#FFBB28",
-    "#FF8042",
-    "#8884d8",
-    "#ffc658",
-  ];
+  const formatMoney = (value) => {
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)} Tr`;
+    }
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)} K`;
+    }
+    return value.toString();
+  };
 
-  // Format revenue date for Area Chart
   const formatRevenueData = (stats.revenue_by_day || []).map((item) => ({
     ...item,
     date: new Date(item.date).toLocaleDateString("vi-VN", {
@@ -138,12 +123,12 @@ export default function Dashboard() {
       day: "numeric",
     }),
     revenue: Number(item.revenue),
-    orders: Number(item.orders || 0), // Giả định backend trả thêm số lượng đơn
+    orders: Number(item.orders || 0),
   }));
 
   // Format revenue month for Bar Chart
   const formatMonthData = (stats.revenue_by_month || []).map((item) => ({
-    name: item.month, // VD: "Tháng 1"
+    name: item.month,
     revenue: Number(item.revenue),
   }));
 
@@ -177,314 +162,7 @@ export default function Dashboard() {
   const handleExportExcel = async () => {
     try {
       setIsExporting(true);
-      
-      const token = localStorage.getItem("token");
-      let url = `${API_URL}/api/admin/dashboard-stats?range=${timeRange}&export=true`;
-      if (timeRange === "custom") {
-        if (!startDate || !endDate) {
-          toast.error("Vui lòng chọn từ ngày và đến ngày");
-          setIsExporting(false);
-          return;
-        }
-        url += `&start_date=${startDate}&end_date=${endDate}`;
-      }
-      
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      });
-      
-      if (!response.ok) throw new Error("Lỗi khi tải dữ liệu xuất báo cáo");
-      const exportStats = await response.json();
-
-      const timeLabel =
-        timeRange === "today" ? "Hôm nay"
-          : timeRange === "7days" ? "7 Ngày qua"
-          : timeRange === "thisMonth" ? "Tháng này"
-          : timeRange === "thisYear" ? "Năm nay"
-          : "Tất cả";
-
-      const wb = XLSX.utils.book_new();
-
-      // ==========================================
-      // Data Processing
-      // ==========================================
-      const orders = exportStats.recent_orders || [];
-      const totalOrdersCount = orders.length;
-      let totalOrderValue = 0;
-      let paidOrdersCount = 0;
-      let totalPaidAmount = 0;
-      let unpaidOrdersCount = 0;
-      let cancelledOrdersCount = 0;
-      let refundedOrdersCount = 0;
-      let totalRefundedAmount = 0;
-      let totalRecognizedRevenue = 0;
-      const dailyStatsMap = {};
-
-      const formatDateShort = (dateStr) => {
-        if (!dateStr) return "";
-        const d = new Date(dateStr);
-        return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}/${d.getFullYear()}`;
-      };
-
-      orders.forEach(order => {
-        const amount = Number(order.final_amount);
-        totalOrderValue += amount;
-        
-        let isPaid = false;
-        let isRefunded = false;
-
-        if (order.payment_status === "paid") {
-          paidOrdersCount++;
-          totalPaidAmount += amount;
-          isPaid = true;
-          totalRecognizedRevenue += amount; // Doanh thu chỉ tính đơn paid
-        } else if (order.payment_status === "refunded") {
-          refundedOrdersCount++;
-          totalRefundedAmount += amount;
-          isRefunded = true;
-        } else {
-          unpaidOrdersCount++;
-        }
-
-        if (order.order_status === "cancelled") {
-          cancelledOrdersCount++;
-        }
-
-        // Daily stats aggregation
-        const dayKey = formatDateShort(order.created_at);
-        if (!dailyStatsMap[dayKey]) {
-          dailyStatsMap[dayKey] = {
-            ordersCount: 0,
-            revenue: 0,
-            paidAmount: 0,
-            refundedAmount: 0
-          };
-        }
-        dailyStatsMap[dayKey].ordersCount++;
-        if (isPaid) {
-          dailyStatsMap[dayKey].paidAmount += amount;
-          dailyStatsMap[dayKey].revenue += amount;
-        }
-        if (isRefunded) {
-          dailyStatsMap[dayKey].refundedAmount += amount;
-        }
-      });
-      
-      const totalNetAfterRefund = totalPaidAmount - totalRefundedAmount;
-
-      const formatMoney = (val) => new Intl.NumberFormat('vi-VN').format(val) + ' ₫';
-      const formatDate = (dateStr) => {
-        if (!dateStr) return "";
-        const d = new Date(dateStr);
-        return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-      };
-
-      // ==========================================
-      // 1. Sheet Tổng Quan
-      // ==========================================
-      const overviewData = [
-        ["BÁO CÁO KINH DOANH"],
-        ["Khoảng thời gian báo cáo:", timeLabel],
-        ["Ngày xuất báo cáo:", formatDate(new Date())],
-        [],
-        ["Tổng quan đơn hàng"],
-        ["Tổng số đơn hàng", totalOrdersCount],
-        ["Tổng giá trị đơn hàng", formatMoney(totalOrderValue)],
-        ["Số đơn đã thanh toán", paidOrdersCount],
-        ["Số đơn chưa thanh toán", unpaidOrdersCount],
-        ["Số đơn đã hủy", cancelledOrdersCount],
-        ["Số đơn hoàn tiền", refundedOrdersCount],
-        [],
-      ];
-
-      if (!isSales) {
-        overviewData.push(
-          ["Tài chính"],
-          ["Tiền đã thanh toán", formatMoney(totalPaidAmount)],
-          ["Tiền hoàn trả", formatMoney(totalRefundedAmount)],
-          ["Tiền thuần sau hoàn", formatMoney(totalNetAfterRefund)],
-          ["Doanh thu từ đơn đã thanh toán", formatMoney(totalRecognizedRevenue)],
-          [],
-          ["GHI CHÚ NGHIỆP VỤ"],
-          ["Doanh thu trong báo cáo được tính dựa trên các đơn hàng đã thanh toán."],
-          ["Tiền hoàn trả được tách riêng và không tính vào doanh thu từ đơn đã thanh toán."]
-        );
-      }
-
-      const wsOverview = XLSX.utils.aoa_to_sheet(overviewData);
-      wsOverview["!cols"] = [{ wch: 45 }, { wch: 25 }];
-      wsOverview["!merges"] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }, // Merge BÁO CÁO KINH DOANH
-      ];
-      XLSX.utils.book_append_sheet(wb, wsOverview, "Tổng Quan");
-
-      // ==========================================
-      // 2. Sheet Chi Tiết Đơn Hàng
-      // ==========================================
-      const ordersHeader = [
-        "STT", "Mã Đơn", "Khách Hàng", "Ngày Đặt", "Phương Thức Thanh Toán", 
-        "Trạng Thái Thanh Toán", "Trạng Thái Đơn Hàng", "Tổng Giá Trị Đơn", 
-        "Tiền Đã Thanh Toán", "Tiền Hoàn Trả", "Doanh Thu Từ Đơn Đã Thanh Toán", "Ghi Chú"
-      ];
-      
-      const ordersBody = orders.map((order, index) => {
-        const amount = Number(order.final_amount);
-        let paidAmount = 0;
-        let refundAmount = 0;
-        let recognizedRev = 0;
-        let note = "";
-
-        if (order.payment_status === "paid") {
-          paidAmount = amount;
-          recognizedRev = amount;
-          if (order.order_status === "cancelled") {
-            note = "Đơn đã hủy - cần đối chiếu trạng thái hoàn tiền";
-          } else {
-            note = "Đã thanh toán - tính vào doanh thu";
-          }
-        } else if (order.payment_status === "refunded") {
-          refundAmount = amount;
-          note = "Đã hoàn tiền";
-        } else {
-          // unpaid or pending
-          if (order.order_status === "cancelled") {
-            note = "Đơn đã hủy - không phát sinh doanh thu";
-          } else {
-            note = "Chưa thanh toán - chưa tính vào doanh thu";
-          }
-        }
-
-        return [
-          index + 1,
-          order.order_code,
-          order.shipping_name,
-          formatDate(order.created_at),
-          paymentMethodTranslations[order.payment_method] || order.payment_method || "N/A",
-          paymentStatusTranslations[order.payment_status] || order.payment_status || "N/A",
-          statusTranslations[order.order_status] || order.order_status,
-          formatMoney(amount),
-          formatMoney(paidAmount),
-          formatMoney(refundAmount),
-          formatMoney(recognizedRev),
-          note
-        ];
-      });
-
-      const ordersFooter = [
-        "TỔNG CỘNG", "", "", "", "", "", "",
-        formatMoney(totalOrderValue),
-        formatMoney(totalPaidAmount),
-        formatMoney(totalRefundedAmount),
-        formatMoney(totalRecognizedRevenue),
-        ""
-      ];
-
-      const ordersNetRow = [
-        "Tiền Thuần Sau Hoàn", "", "", "", "", "", "", "", "", "", formatMoney(totalNetAfterRefund), ""
-      ];
-
-      const wsOrders = XLSX.utils.aoa_to_sheet([ordersHeader, ...ordersBody, ordersFooter, ordersNetRow]);
-      wsOrders["!cols"] = [
-        { wch: 5 }, { wch: 15 }, { wch: 25 }, { wch: 18 }, { wch: 22 }, 
-        { wch: 20 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, 
-        { wch: 35 }, { wch: 45 }
-      ];
-      wsOrders["!freeze"] = { xSplit: 0, ySplit: 1, topLeftCell: "A2", activePane: "bottomLeft", state: "frozen" };
-      wsOrders["!autofilter"] = { ref: `A1:L${orders.length + 1}` };
-      XLSX.utils.book_append_sheet(wb, wsOrders, "Chi Tiết Đơn Hàng");
-
-      // ==========================================
-      // 3. Sheet Sản Phẩm Bán Ra
-      // ==========================================
-      const productsHeader = ["STT", "Tên Sản Phẩm", "Số Lượng Bán", "Doanh Thu", "Tỷ Trọng Doanh Thu", "Giá Bán Trung Bình"];
-      const productsBody = (exportStats.top_products || []).map((product, idx) => [
-        idx + 1,
-        product.name,
-        Number(product.total_sold),
-        "N/A",
-        "N/A",
-        "N/A"
-      ]);
-      productsBody.push(["", "(Ghi chú: Doanh thu sản phẩm chưa được cung cấp từ API.)", "", "", "", ""]);
-      
-      const wsProducts = XLSX.utils.aoa_to_sheet([productsHeader, ...productsBody]);
-      wsProducts["!cols"] = [{ wch: 5 }, { wch: 45 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 20 }];
-      wsProducts["!freeze"] = { xSplit: 0, ySplit: 1, topLeftCell: "A2", activePane: "bottomLeft", state: "frozen" };
-      wsProducts["!autofilter"] = { ref: `A1:F1` };
-      XLSX.utils.book_append_sheet(wb, wsProducts, "Sản Phẩm Bán Ra");
-
-      // ==========================================
-      // 4. Sheet Doanh Thu Theo Ngày
-      // ==========================================
-      const dailyDataHeader = ["Ngày", "Số Đơn Hàng", "Doanh Thu Từ Đơn Đã Thanh Toán", "Tiền Đã Thanh Toán", "Tiền Hoàn Trả", "Tiền Thuần Sau Hoàn"];
-      const dailyKeys = Object.keys(dailyStatsMap).sort((a, b) => {
-        // Sort DD/MM/YYYY string as dates
-        const [d1, m1, y1] = a.split('/');
-        const [d2, m2, y2] = b.split('/');
-        return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
-      });
-
-      const dailyBody = dailyKeys.map(dayKey => {
-        const d = dailyStatsMap[dayKey];
-        const netAfterRefund = d.paidAmount - d.refundedAmount;
-        return [
-          dayKey,
-          d.ordersCount,
-          formatMoney(d.revenue),
-          formatMoney(d.paidAmount),
-          formatMoney(d.refundedAmount),
-          formatMoney(netAfterRefund)
-        ];
-      });
-
-      const wsDaily = XLSX.utils.aoa_to_sheet(
-        isSales 
-          ? [["Tính năng này không khả dụng cho tài khoản Sales."]]
-          : [dailyDataHeader, ...dailyBody]
-      );
-      if (!isSales) {
-        wsDaily["!cols"] = [{ wch: 15 }, { wch: 15 }, { wch: 35 }, { wch: 20 }, { wch: 20 }, { wch: 20 }];
-        wsDaily["!freeze"] = { xSplit: 0, ySplit: 1, topLeftCell: "A2", activePane: "bottomLeft", state: "frozen" };
-        wsDaily["!autofilter"] = { ref: `A1:F${dailyBody.length + 1}` };
-      }
-      XLSX.utils.book_append_sheet(wb, wsDaily, "Doanh Thu Theo Ngày");
-
-      // ==========================================
-      // 5. Sheet Thống Kê Trạng Thái
-      // ==========================================
-      const statusValueMap = {};
-      orders.forEach(order => {
-        if (!statusValueMap[order.order_status]) statusValueMap[order.order_status] = 0;
-        statusValueMap[order.order_status] += Number(order.final_amount);
-      });
-
-      const statusHeader = ["Trạng Thái Đơn Hàng", "Số Lượng Đơn", "Tổng Giá Trị", "Tỷ Lệ (Số Đơn)"];
-      const statusBody = (exportStats.orders_by_status || []).map(item => {
-        const valueSum = statusValueMap[item.name] || 0;
-        const rate = totalOrdersCount > 0 ? (Number(item.value) / totalOrdersCount) : 0;
-        const formatPercent = (val) => (val * 100).toFixed(2) + '%';
-        return [
-          statusTranslations[item.name] || item.name,
-          Number(item.value),
-          formatMoney(valueSum),
-          formatPercent(rate)
-        ];
-      });
-
-      const wsStatus = XLSX.utils.aoa_to_sheet([statusHeader, ...statusBody]);
-      wsStatus["!cols"] = [{ wch: 25 }, { wch: 15 }, { wch: 20 }, { wch: 15 }];
-      wsStatus["!freeze"] = { xSplit: 0, ySplit: 1, topLeftCell: "A2", activePane: "bottomLeft", state: "frozen" };
-      wsStatus["!autofilter"] = { ref: `A1:D${statusBody.length + 1}` };
-      XLSX.utils.book_append_sheet(wb, wsStatus, "Thống Kê Trạng Thái");
-
-      // ==========================================
-      // Xuất file
-      // ==========================================
-      const today = new Date().toISOString().slice(0, 10);
-      XLSX.writeFile(wb, `Bao_Cao_Kinh_Doanh_${timeRange}_${today}.xlsx`);
+      await exportDashboardExcel({ timeRange, startDate, endDate, isSales });
       toast.success("Xuất báo cáo thành công!");
     } catch (error) {
       console.error("Lỗi xuất Excel:", error);
@@ -624,7 +302,6 @@ export default function Dashboard() {
     });
   };
 
-  // Helper for rendering trend indicator
   const renderTrend = (value) => {
     const isPositive = Number(value) >= 0;
     return (
@@ -698,13 +375,6 @@ export default function Dashboard() {
               </button>
             </div>
           )}
-
-          <button
-            onClick={loadMockData}
-            className="flex items-center gap-2 px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm hover:bg-yellow-100 transition-colors text-sm font-medium text-yellow-700 cursor-pointer"
-          >
-            <i className="fas fa-magic"></i> Dữ liệu mẫu
-          </button>
 
           <button
             onClick={handleExportExcel}
@@ -826,90 +496,10 @@ hover:bg-green-100 transition-colors text-sm font-medium text-green-700 ${isExpo
             </div>
           </div>
           <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={formatRevenueData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="#f3f4f6"
-                />
-                <XAxis
-                  dataKey="date"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#6b7280", fontSize: 12 }}
-                  dy={10}
-                />
-                {!isSales && (
-                  <YAxis
-                    yAxisId="left"
-                    tickFormatter={(value) =>
-                      `${(value / 1000000).toFixed(0)}M`
-                    }
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#6b7280", fontSize: 12 }}
-                  />
-                )}
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#6b7280", fontSize: 12 }}
-                />
-                <Tooltip
-                  formatter={(value, name) => [
-                    name === "revenue"
-                      ? `${Number(value).toLocaleString("vi-VN")}₫`
-                      : value,
-                    name === "revenue" ? "Doanh thu" : "Đơn hàng",
-                  ]}
-                  contentStyle={{
-                    borderRadius: "12px",
-                    border: "none",
-                    boxShadow:
-                      "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
-                    padding: "12px",
-                  }}
-                />
-                {!isSales && (
-                  <Area
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#4f46e5"
-                    strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#colorRevenue)"
-                    activeDot={{ r: 6, strokeWidth: 0 }}
-                  />
-                )}
-                <Area
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="orders"
-                  stroke="#10b981"
-                  strokeWidth={3}
-                  fillOpacity={1}
-                  fill="url(#colorOrders)"
-                  activeDot={{ r: 6, strokeWidth: 0 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            <RevenueAreaChart
+              data={formatRevenueData}
+              formatMoney={formatMoney}
+            />
           </div>
         </div>
 
@@ -923,41 +513,7 @@ hover:bg-green-100 transition-colors text-sm font-medium text-green-700 ${isExpo
           </p>
           <div className="flex-1 w-full flex items-center justify-center min-h-[250px]">
             {formatStatusData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={formatStatusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={70}
-                    outerRadius={105}
-                    fill="#8884d8"
-                    paddingAngle={3}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {formatStatusData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: "12px",
-                      border: "none",
-                      boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
-                    }}
-                  />
-                  <Legend
-                    verticalAlign="bottom"
-                    height={36}
-                    iconType="circle"
-                    wrapperStyle={{ fontSize: "13px" }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <OrderStatusPieChart data={formatStatusData} />
             ) : (
               <div className="text-gray-400 text-sm border-2 border-dashed border-gray-100 rounded-xl p-8">
                 Chưa có dữ liệu
@@ -977,62 +533,10 @@ hover:bg-green-100 transition-colors text-sm font-medium text-green-700 ${isExpo
             </h3>
             <div className="h-80 w-full">
               {formatMonthData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={formatMonthData}
-                    margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="#f3f4f6"
-                    />
-                    <XAxis
-                      dataKey="name"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "#6b7280", fontSize: 12 }}
-                      dy={10}
-                    />
-                    <YAxis
-                      tickFormatter={(value) =>
-                        `${(value / 1000000).toFixed(0)}M`
-                      }
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "#6b7280", fontSize: 12 }}
-                    />
-                    <Tooltip
-                      cursor={{ fill: "#f3f4f6", opacity: 0.5 }}
-                      formatter={(value) => [
-                        `${Number(value).toLocaleString("vi-VN")}₫`,
-                        "Doanh thu",
-                      ]}
-                      contentStyle={{
-                        borderRadius: "12px",
-                        border: "none",
-                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                      }}
-                    />
-                    <Bar
-                      dataKey="revenue"
-                      fill="#3b82f6"
-                      radius={[4, 4, 0, 0]}
-                      maxBarSize={50}
-                    >
-                      {formatMonthData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={
-                            index === formatMonthData.length - 1
-                              ? "#4f46e5"
-                              : "#93c5fd"
-                          }
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <RevenueBarChart
+                  data={formatMonthData}
+                  formatMoney={formatMoney}
+                />
               ) : (
                 <div className="h-full w-full flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-100 rounded-xl">
                   Chưa có dữ liệu theo tháng

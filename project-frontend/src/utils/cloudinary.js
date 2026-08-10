@@ -19,7 +19,7 @@ export const uploadToCloudinary = async (file) => {
     }
 
     const data = await response.json();
-    return data.secure_url; // Trả về đường link URL của ảnh
+    return data.secure_url;
   } catch (error) {
     console.error('Cloudinary upload error:', error);
     throw error;

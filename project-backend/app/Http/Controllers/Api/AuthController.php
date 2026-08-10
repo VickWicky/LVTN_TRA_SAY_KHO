@@ -17,8 +17,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
-            'phone' => 'nullable|string|max:10', // Tối đa 10 số 
-        ], [
+            'phone' => 'nullable|string|max:10',
             'email.unique' => 'Địa chỉ email này đã được sử dụng cho một tài khoản khác.',
             'email.email' => 'Địa chỉ email không đúng định dạng.',
             'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự.',
@@ -101,12 +100,10 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // Kiểm tra xem user có tồn tại và mật khẩu có khớp không
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Tài khoản hoặc mật khẩu không chính xác'], 401);
         }
 
-        // Kiểm tra xem tài khoản có bị khóa không
         if (!$user->is_active) {
             return response()->json(['message' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin!'], 403);
         }
@@ -117,12 +114,12 @@ class AuthController extends Controller
             'message' => 'Đăng nhập thành công',
             'access_token' => $token,
             'user' => $user,
-            'roles' => $user->getRoleNames(), // ['admin'], ['staff'], hoặc ['customer']
+            'roles' => $user->getRoleNames(),
             'permissions' => $user->getAllPermissions()->pluck('name'),
         ]);
     }
 
-    // 3. API NHẬN TOKEN TỪ GOOGLE (DO REACT GỬI LÊN)
+    // 3. API NHẬN TOKEN TỪ GOOGLE
     public function googleLogin(Request $request)
     {
         $request->validate([
@@ -140,21 +137,17 @@ class AuthController extends Controller
                     'name' => $googleUser->getName(),
                     'google_id' => $googleUser->getId(),
                     'avatar' => $googleUser->getAvatar(),
-                    // Bỏ qua password vì đăng nhập bằng Google
                 ]
             );
 
-            // Gán role customer cho user Google mới tạo
             if ($user->wasRecentlyCreated) {
                 $user->assignRole('customer');
             }
 
-            // Kiểm tra xem tài khoản có bị khóa không
             if (!$user->is_active) {
                 return response()->json(['message' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin!'], 403);
             }
 
-            // Cấp phát Token của hệ thống mình cho React sử dụng
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
@@ -195,7 +188,6 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        // Nếu user đăng nhập bằng Google (không có password), thì không cho đổi mật khẩu
         if (!$user->password && $user->google_id) {
             return response()->json(['message' => 'Tài khoản đăng nhập bằng Google không thể đổi mật khẩu.'], 400);
         }
@@ -275,7 +267,6 @@ class AuthController extends Controller
         $user->password = Hash::make($request->new_password);
         $user->save();
 
-        // Xóa Cache
         \Illuminate\Support\Facades\Cache::forget('forgot_password_otp_' . $request->email);
 
         return response()->json([

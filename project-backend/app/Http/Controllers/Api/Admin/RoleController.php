@@ -9,7 +9,6 @@ use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
-    // List all roles with their permissions
     public function index()
     {
         $roles = Role::with('permissions')->get();
@@ -24,14 +23,12 @@ class RoleController extends Controller
         return response()->json($roles);
     }
 
-    // List all available permissions
     public function permissions()
     {
         $permissions = Permission::all();
         return response()->json($permissions);
     }
 
-    // Create a new role
     public function store(Request $request)
     {
         $request->validate([
@@ -52,7 +49,6 @@ class RoleController extends Controller
         ], 201);
     }
 
-    // Update a role
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -81,7 +77,6 @@ class RoleController extends Controller
         ]);
     }
 
-    // Delete a role
     public function destroy($id)
     {
         $role = Role::findOrFail($id);

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\Promotion;
+use App\Services\CloudinaryService;
 
 class ProductController extends Controller
 {
@@ -21,6 +22,21 @@ class ProductController extends Controller
         return response()->json($categories);
     }
 
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|max:10240',
+        ]);
+
+        try {
+            $cloudinaryService = new CloudinaryService();
+            $url = $cloudinaryService->uploadImage($request->file('image'), 'products/editor');
+            return response()->json(['url' => $url]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Lỗi upload ảnh: ' . $e->getMessage()], 500);
+        }
+    }
+
     private function applyPromotions($products)
     {
         $promotionService = new \App\Services\PromotionService();
@@ -28,7 +44,6 @@ class ProductController extends Controller
 
         foreach ($products as $product) {
             foreach ($product->variants as $variant) {
-                // Set variant's sale price to null by default
                 $variant->sale_price = null;
                 $variant->promotion_id = null;
 
@@ -265,7 +280,6 @@ class ProductController extends Controller
             return response()->json(['message' => 'Dữ liệu biến thể không hợp lệ', 'errors' => $variantValidator->errors()], 422);
         }
 
-        // Custom SKU unique check for update
         foreach ($variants as $index => $variant) {
             $existing = \App\Models\ProductVariant::where('sku', $variant['sku'])
                         ->where('product_id', '!=', $product->id)

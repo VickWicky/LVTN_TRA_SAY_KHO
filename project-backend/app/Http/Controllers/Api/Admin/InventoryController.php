@@ -46,7 +46,6 @@ class InventoryController extends Controller
         
         $paginated = $query->paginate(10);
         
-        // Format to match frontend expectations
         $paginated->getCollection()->transform(function ($batch) {
             return [
                 'id' => $batch->id,
@@ -98,14 +97,12 @@ class InventoryController extends Controller
         try {
             DB::beginTransaction();
 
-            // Lấy user_id tạm nếu không có admin auth
             $user_id = auth('sanctum')->id();
             if (!$user_id) {
                 $user = User::first();
                 $user_id = $user ? $user->id : 1;
             }
 
-            // Tính toán tổng tiền thực tế
             $calculatedTotal = 0;
             foreach ($validated['items'] as $item) {
                 $calculatedTotal += ($item['quantity'] * $item['import_price']);

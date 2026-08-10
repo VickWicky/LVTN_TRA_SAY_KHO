@@ -97,25 +97,21 @@ export default function ProductDetail() {
 
   const metaText = `Gói ${selectedVariant ? selectedVariant.weight : 100}g — Bảo quản: nơi khô ráo, tránh ánh nắng trực tiếp`;
 
-  const featuresList = product.ingredient
-    ? product.ingredient.split("\n").filter((item) => item.trim() !== "")
-    : [
-        `Loại trà: ${product.name}`,
-        `Trọng lượng: ${selectedVariant ? selectedVariant.weight : 100}g`,
-        "Thành phần: 100% lá trà thiên nhiên",
-      ];
+  const defaultFeatures = [
+    `Loại trà: ${product.name}`,
+    `Trọng lượng: ${selectedVariant ? selectedVariant.weight : 100}g`,
+    "Thành phần: 100% lá trà thiên nhiên",
+  ];
 
-  const brewList = product.usage_instruction
-    ? product.usage_instruction.split("\n").filter((item) => item.trim() !== "")
-    : [
-        "Đun nước sôi đến 75-85°C",
-        "Cho lá trà 2-3g vào tách",
-        "Ngâm 3-5 phút rồi thưởng thức",
-      ];
+  const defaultBrewList = [
+    "Đun nước sôi đến 75-85°C",
+    "Cho lá trà 2-3g vào tách",
+    "Ngâm 3-5 phút rồi thưởng thức",
+  ];
 
   return (
     <div className="container mx-auto px-4 max-w-7xl py-12">
-      {/* Nút Back về trang sản phẩm */}
+      {/* Nút về trang sản phẩm */}
       <div className="mb-6">
         <Link
           to="/products"
@@ -168,9 +164,14 @@ export default function ProductDetail() {
             )}
           </div>
 
-          <p className="text-gray-600 leading-relaxed mb-8 border-b border-gray-100 pb-8">
-            {product.description || "Chưa có mô tả chi tiết cho sản phẩm này."}
-          </p>
+          <div
+            className="text-gray-600 leading-relaxed mb-8 border-b border-gray-100 pb-8 prose"
+            dangerouslySetInnerHTML={{
+              __html:
+                product.description ||
+                "Chưa có mô tả chi tiết cho sản phẩm này.",
+            }}
+          />
 
           {/* KHU VỰC CHỌN GÓI TRÀ */}
           <div className="mb-8">
@@ -266,30 +267,42 @@ export default function ProductDetail() {
               ></i>
             </button>
           </div>
+        </div>
+      </div>
 
-          {/* Box Chi tiết */}
-          <div className="bg-bglight p-6 rounded-xl mb-6">
-            <h3 className="text-lg font-bold text-dark mb-4">
-              Chi Tiết Sản Phẩm
-            </h3>
-            <ul className="list-disc pl-5 text-gray-600 space-y-2">
-              {featuresList.map((feature, index) => (
-                <li key={index}>{feature}</li>
-              ))}
-            </ul>
+
+
+      {/* MÔ TẢ CHI TIẾT SẢN PHẨM (Dưới cùng) */}
+      <div className="mt-16 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-2xl font-bold text-dark mb-6 border-b border-gray-100 pb-4">
+          Chi Tiết Sản Phẩm
+        </h2>
+        
+        <div className="space-y-12">
+          {/* Section: Mô tả */}
+          <div>
+            <h3 className="text-xl font-bold text-primary mb-4">Mô tả sản phẩm</h3>
+            <div 
+              className="text-gray-600 leading-relaxed prose max-w-none" 
+              dangerouslySetInnerHTML={{ __html: product.description || "Chưa có mô tả chi tiết cho sản phẩm này." }}
+            />
           </div>
 
-          {/* Box Hướng dẫn pha */}
-          <div className="bg-bglight p-6 rounded-xl">
-            <h3 className="text-lg font-bold text-dark mb-4">
-              Hướng Dẫn Pha Trà
-            </h3>
-            <ol className="list-decimal pl-5 text-gray-600 space-y-2">
-              {brewList.map((step, index) => (
-                <li key={index}>{step}</li>
-              ))}
-            </ol>
-          </div>
+          {/* Section: Thành phần */}
+          {product.ingredient && (
+            <div>
+              <h3 className="text-xl font-bold text-primary mb-4">Thành phần</h3>
+              <div className="text-gray-600 prose max-w-none" dangerouslySetInnerHTML={{ __html: product.ingredient }} />
+            </div>
+          )}
+
+          {/* Section: Cách dùng */}
+          {product.usage_instruction && (
+            <div>
+              <h3 className="text-xl font-bold text-primary mb-4">Cách dùng / Pha chế</h3>
+              <div className="text-gray-600 prose max-w-none" dangerouslySetInnerHTML={{ __html: product.usage_instruction }} />
+            </div>
+          )}
         </div>
       </div>
 

@@ -17,7 +17,6 @@ class ProductVariant extends Model
 
     public function getTotalStockAttribute()
     {
-        // Tính tổng stock từ các lô hàng (batches) chưa hết hạn và stock > 0
         return $this->batches()
             ->where('expiry_date', '>', now())
             ->sum('stock');

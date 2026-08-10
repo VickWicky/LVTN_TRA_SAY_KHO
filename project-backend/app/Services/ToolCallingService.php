@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\Log;
 
 class ToolCallingService
 {
-    /**
-     * Get the JSON Schema for all available tools
-     */
     public function getToolsDefinition(): array
     {
         return [
@@ -131,9 +128,7 @@ class ToolCallingService
             ]
         ];
     }
-    /**
-    * Execute a tool call and return JSON string result
-     */
+
     public function executeTool(string $name, array $arguments, $userId = null, $sessionToken = null): string
     {
         Log::info("Executing Tool: $name", $arguments);
@@ -184,7 +179,6 @@ class ToolCallingService
 
     private function searchByNeed($need)
     {
-        // Phân tích nhu cầu đơn giản dựa trên description
         $products = Product::with('variants:id,product_id,price,weight')
             ->where('description', 'like', "%$need%")
             ->orWhere('name', 'like', "%$need%")
@@ -250,8 +244,6 @@ class ToolCallingService
             ];
         }
         $this->saveCart($sessionToken, $cart);
-        
-        // Calculate total
         $total = array_reduce($cart, function($carry, $item) {
             return $carry + ($item['price'] * $item['quantity']);
         }, 0);
@@ -297,7 +289,6 @@ class ToolCallingService
             return json_encode(['error' => 'Số điện thoại không hợp lệ. Khách phải nhập đúng 10 số.']);
         }
 
-        // Tạo API Request gọi Controller Order
         $items = [];
         foreach($cart as $c) {
             $items[] = [
@@ -321,20 +312,16 @@ class ToolCallingService
             });
         }
 
-        // Gọi OrderController store (giả lập)
-        // Thay vì request, ta trực tiếp sử dụng OrderController
         $orderController = app(\App\Http\Controllers\Api\OrderController::class);
         $response = $orderController->store($request);
         $responseData = json_decode($response->getContent(), true);
 
         if ($response->getStatusCode() === 201) {
-            // Xóa giỏ hàng
             \Illuminate\Support\Facades\Cache::forget("chatbot_cart_{$sessionToken}");
             
             $orderId = $responseData['order']['id'];
             $orderCode = $responseData['order']['order_code'];
             
-            // Xử lý VNPAY nếu được yêu cầu
             if (strtolower($paymentMethod) === 'vnpay') {
                 $paymentController = app(\App\Http\Controllers\Api\PaymentController::class);
                 $paymentRequest = new \Illuminate\Http\Request();

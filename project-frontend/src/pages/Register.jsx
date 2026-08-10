@@ -222,7 +222,7 @@ export default function Register() {
                 className="w-full px-4 py-4 text-center text-2xl tracking-widest border border-gray-300 rounded-lg focus:outline-none focus:border-primary transition"
                 placeholder="------"
                 value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))} // Chỉ cho phép nhập số
+                onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
               />
             </div>
 

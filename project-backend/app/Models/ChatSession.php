@@ -11,14 +11,11 @@ class ChatSession extends Model
     use HasFactory, MassPrunable;
 
     protected $fillable = ['user_id', 'session_token'];
+    public const UPDATED_AT = null;
 
-    /**
-     * Get the prunable model query.
-     */
     public function prunable()
     {
-        // Delete sessions older than 15 days
-        return static::where('updated_at', '<', now()->subDays(15));
+        return static::where('created_at', '<', now()->subDays(15));
     }
 
     public function user()

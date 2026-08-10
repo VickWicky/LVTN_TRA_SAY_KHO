@@ -1,13 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
-/**
- * ProtectedRoute — Bảo vệ route theo auth & role
- *
- * Cách dùng:
- *   <ProtectedRoute>                              → Chỉ cần đăng nhập
- *   <ProtectedRoute requireAdminPanel={true}>   → Cần đăng nhập + có role thuộc nhóm nhân viên (khác 'user')
- */
 export default function ProtectedRoute({
   children,
   allowedRoles,
@@ -15,7 +8,6 @@ export default function ProtectedRoute({
 }) {
   const { isLoggedIn, roles, isLoading } = useAuth();
 
-  // Đang tải thông tin user — hiện loading
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -29,12 +21,10 @@ export default function ProtectedRoute({
     );
   }
 
-  // Chưa đăng nhập → chuyển về trang login
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
 
-  // Đã đăng nhập nhưng không đủ quyền (dựa theo allowedRoles cụ thể nếu có)
   if (allowedRoles && allowedRoles.length > 0) {
     const hasRole = allowedRoles.some((role) => roles.includes(role));
     if (!hasRole) {
@@ -42,9 +32,7 @@ export default function ProtectedRoute({
     }
   }
 
-  // Đã đăng nhập nhưng cố vào trang Admin khi chỉ có mỗi role 'user'
   if (requireAdminPanel) {
-    // Yêu cầu quyền admin hoặc staff để vào trang quản trị
     const hasAdminOrStaff =
       roles.includes("admin") ||
       roles.includes("warehouse") ||

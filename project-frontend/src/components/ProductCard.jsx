@@ -25,7 +25,6 @@ export default function ProductCard({ product }) {
     minPrice = Math.min(...currentPrices);
     maxPrice = Math.max(...currentPrices);
   } else if (product.minPrice !== undefined) {
-    // Allow passing pre-calculated prices if already calculated
     minPrice = product.minPrice;
     maxPrice = product.maxPrice;
     isDiscounted = product.isDiscounted;

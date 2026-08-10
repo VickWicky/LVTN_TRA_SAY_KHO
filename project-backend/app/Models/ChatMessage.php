@@ -10,14 +10,11 @@ class ChatMessage extends Model
 {
     use HasFactory, MassPrunable;
 
-    protected $fillable = ['chat_session_id', 'role', 'content', 'tool_calls'];
+    protected $fillable = ['chat_session_id', 'role', 'content'];
+    public const UPDATED_AT = null;
 
-    /**
-     * Get the prunable model query.
-     */
     public function prunable()
     {
-        // Delete messages older than 15 days
         return static::where('created_at', '<', now()->subDays(15));
     }
 
