@@ -78,9 +78,6 @@ PHONG CÁCH:
                     'functionDeclarations' => $tools
                 ]
             ],
-            // 'toolConfig' => [
-            //     'functionCallingConfig' => ['mode' => 'AUTO']
-            // ]
         ];
 
         try {

@@ -58,7 +58,6 @@ export default function Products() {
     fetchData();
   }, []);
 
-  // Lấy giá min/max cho từng sản phẩm
   const processedProducts = products.map((product) => {
     let minPrice = 0;
     let maxPrice = 0;
@@ -93,7 +92,6 @@ export default function Products() {
     };
   });
 
-  // Filter
   const normalizedSearchTerm = removeVietnameseTones(searchTerm).toLowerCase();
 
   let filteredProducts = processedProducts.filter((p) => {
@@ -118,7 +116,6 @@ export default function Products() {
     return matchesSearch && matchesCategory && matchesPrice;
   });
 
-  // Sort
   if (sortOrder === "price-asc") {
     filteredProducts.sort((a, b) => a.minPrice - b.minPrice);
   } else if (sortOrder === "price-desc") {
@@ -129,7 +126,6 @@ export default function Products() {
     filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
   }
 
-  // Cắt dữ liệu cho trang hiện tại
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const currentProducts = filteredProducts.slice(
     (currentPage - 1) * itemsPerPage,

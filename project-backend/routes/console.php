@@ -10,7 +10,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Schedule database pruning for old chatbot sessions and messages daily
 Schedule::command('model:prune', [
     '--model' => [ChatSession::class, ChatMessage::class],
 ])->daily();

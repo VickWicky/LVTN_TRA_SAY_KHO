@@ -122,7 +122,7 @@ export default function ProductDetail() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-        {/* CỘT TRÁI: Ảnh sản phẩm */}
+        {/* Ảnh sản phẩm */}
         <div className="sticky top-24">
           <div className="rounded-xl overflow-hidden shadow-lg bg-bglight group relative flex justify-center items-center h-[500px]">
             <img
@@ -133,7 +133,7 @@ export default function ProductDetail() {
           </div>
         </div>
 
-        {/* CỘT PHẢI: Thông tin chi tiết */}
+        {/* Thông tin chi tiết */}
         <div>
           <h1 className="text-3xl font-bold text-dark mb-2">{product.name}</h1>
           <p className="text-light text-sm mb-4">{metaText}</p>
@@ -163,8 +163,6 @@ export default function ProductDetail() {
               </span>
             )}
           </div>
-
-
 
           {/* KHU VỰC CHỌN GÓI TRÀ */}
           <div className="mb-8">
@@ -263,37 +261,51 @@ export default function ProductDetail() {
         </div>
       </div>
 
-
-
-      {/* MÔ TẢ CHI TIẾT SẢN PHẨM (Dưới cùng) */}
+      {/* MÔ TẢ CHI TIẾT SẢN PHẨM */}
       <div className="mt-16 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
         <h2 className="text-2xl font-bold text-dark mb-6 border-b border-gray-100 pb-4">
           Chi Tiết Sản Phẩm
         </h2>
-        
+
         <div className="space-y-12">
-          {/* Section: Mô tả */}
+          {/* Mô tả */}
           <div>
-            <h3 className="text-xl font-bold text-primary mb-4">Mô tả sản phẩm</h3>
-            <div 
-              className="text-gray-600 leading-relaxed prose max-w-none" 
-              dangerouslySetInnerHTML={{ __html: product.description || "Chưa có mô tả chi tiết cho sản phẩm này." }}
+            <h3 className="text-xl font-bold text-primary mb-4">
+              Mô tả sản phẩm
+            </h3>
+            <div
+              className="text-gray-600 leading-relaxed prose max-w-none"
+              dangerouslySetInnerHTML={{
+                __html:
+                  product.description ||
+                  "Chưa có mô tả chi tiết cho sản phẩm này.",
+              }}
             />
           </div>
 
-          {/* Section: Thành phần */}
+          {/* Thành phần */}
           {product.ingredient && (
             <div>
-              <h3 className="text-xl font-bold text-primary mb-4">Thành phần</h3>
-              <div className="text-gray-600 prose max-w-none" dangerouslySetInnerHTML={{ __html: product.ingredient }} />
+              <h3 className="text-xl font-bold text-primary mb-4">
+                Thành phần
+              </h3>
+              <div
+                className="text-gray-600 prose max-w-none"
+                dangerouslySetInnerHTML={{ __html: product.ingredient }}
+              />
             </div>
           )}
 
-          {/* Section: Cách dùng */}
+          {/* Cách dùng */}
           {product.usage_instruction && (
             <div>
-              <h3 className="text-xl font-bold text-primary mb-4">Cách dùng / Pha chế</h3>
-              <div className="text-gray-600 prose max-w-none" dangerouslySetInnerHTML={{ __html: product.usage_instruction }} />
+              <h3 className="text-xl font-bold text-primary mb-4">
+                Cách dùng / Pha chế
+              </h3>
+              <div
+                className="text-gray-600 prose max-w-none"
+                dangerouslySetInnerHTML={{ __html: product.usage_instruction }}
+              />
             </div>
           )}
         </div>

@@ -14,14 +14,6 @@ class CloudinaryService
         $this->cloudinary = new Cloudinary(env('CLOUDINARY_URL'));
     }
 
-    /**
-     * Upload an image to Cloudinary.
-     *
-     * @param \Illuminate\Http\UploadedFile $file
-     * @param string $folder
-     * @param string|null $publicId
-     * @return string URL of the uploaded image
-     */
     public function uploadImage($file, $folder = 'general', $publicId = null)
     {
         $options = [
@@ -42,12 +34,6 @@ class CloudinaryService
         }
     }
 
-    /**
-     * Delete an image from Cloudinary by its URL.
-     *
-     * @param string $url
-     * @return bool
-     */
     public function deleteImage($url)
     {
         if (!$url || strpos($url, 'res.cloudinary.com') === false) {

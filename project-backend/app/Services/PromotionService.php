@@ -7,9 +7,6 @@ use App\Models\ProductVariant;
 
 class PromotionService
 {
-    /**
-     * @var \Illuminate\Database\Eloquent\Collection
-     */
     protected $activePromotions;
 
     public function __construct()
@@ -21,14 +18,6 @@ class PromotionService
             ->get();
     }
 
-    /**
-     * Tính toán giá tốt nhất và promotion_id cho một biến thể sản phẩm
-     *
-     * @param ProductVariant $variant
-     * @param int $categoryId
-     * @param int $productId
-     * @return array ['sale_price' => float|null, 'promotion_id' => int|null]
-     */
     public function getBestPromotionForVariant($variant, $categoryId, $productId)
     {
         if ($this->activePromotions->isEmpty()) {

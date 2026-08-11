@@ -202,7 +202,7 @@ export default function Profile() {
   return (
     <div className="container mx-auto px-4 max-w-7xl py-12 flex-grow">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        {/* CỘT TRÁI: MENU ĐIỀU HƯỚNG */}
+        {/* MENU ĐIỀU HƯỚNG */}
         <div className="bg-bglight p-6 rounded-xl h-fit">
           <div className="text-center mb-6 border-b border-gray-200 pb-6">
             {user.avatar ? (
@@ -276,7 +276,7 @@ export default function Profile() {
           </nav>
         </div>
 
-        {/* CỘT PHẢI: KHU VỰC HIỂN THỊ */}
+        {/* KHU VỰC HIỂN THỊ */}
         <div className="md:col-span-3">
           {activeTab === "info" && (
             <UserInfoTab

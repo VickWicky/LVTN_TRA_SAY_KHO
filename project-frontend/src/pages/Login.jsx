@@ -41,7 +41,6 @@ export default function Login() {
     }
   };
 
-  // Đăng nhập bằng Google
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
@@ -76,7 +75,6 @@ export default function Login() {
     },
   });
 
-  // Đăng nhập tài khoản thường
   const handleNormalSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);

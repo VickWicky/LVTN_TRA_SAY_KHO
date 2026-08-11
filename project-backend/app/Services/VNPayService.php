@@ -113,11 +113,11 @@ class VNPayService
         $vnp_RequestId = time() . rand(100, 999);
         $vnp_Version = '2.1.0';
         $vnp_Command = 'refund';
-        $vnp_TransactionType = '02'; //Hoàn trả toàn phần
+        $vnp_TransactionType = '02'; 
         $vnp_TxnRef = $orderCode;
         $vnp_Amount = $amount * 100;
         $vnp_OrderInfo = "Hoan tien don hang " . $orderCode;
-        $vnp_TransactionNo = "0"; //Bỏ qua nếu không lưu transaction_no
+        $vnp_TransactionNo = "0"; 
         $vnp_TransactionDate = date('YmdHis', strtotime($transDate));
         $vnp_CreateBy = $user;
         $vnp_CreateDate = date('YmdHis');
@@ -144,7 +144,6 @@ class VNPayService
         ];
 
         try {
-            // Thêm withoutVerifying() để bỏ qua lỗi SSL (cURL error 60) trên localhost (XAMPP/Windows)
             $response = \Illuminate\Support\Facades\Http::withoutVerifying()->post($vnp_Api, $data);
             $result = $response->json();
             

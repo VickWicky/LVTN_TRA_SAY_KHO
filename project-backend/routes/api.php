@@ -65,13 +65,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/wishlists/toggle', [WishlistController::class, 'toggle']);
 });
 
-// Contact API (Public)
+// Contact
 Route::post('/contacts', [ContactController::class, 'store']);
 
-// Route Chatbot API (Public)
+// Chatbot
 Route::post('/chat', [ChatController::class, 'sendMessage']);
 
-// Admin API
+// Admin
 Route::prefix('admin')
     ->middleware(['auth:sanctum'])
     ->group(function () {
